@@ -1,0 +1,6 @@
+Flask
+pytesseract
+Pillow
+SpeechRecognition
+transformers
+torch
