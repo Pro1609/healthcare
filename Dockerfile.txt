@@ -1,0 +1,27 @@
+# Use an official Python image
+FROM python:3.10-slim
+
+# Install Tesseract and Poppler for PDF support
+RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    poppler-utils \
+    && apt-get clean
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirement files and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the app
+COPY . .
+
+# Expose the port
+EXPOSE 10000
+
+# Set the environment variable so Flask knows it's in production
+ENV FLASK_ENV=production
+
+# Run the Flask app
+CMD ["python", "app.py"]
