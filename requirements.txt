@@ -1,4 +1,8 @@
 Flask==2.3.2
+poppler-utils
 gunicorn
 werkzeug
 requests
+pdf2image 
+pillow
+
