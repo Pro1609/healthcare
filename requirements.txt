@@ -5,4 +5,4 @@ werkzeug
 requests
 pdf2image 
 pillow
-
+openai
