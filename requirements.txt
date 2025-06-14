@@ -1,5 +1,2 @@
 Flask==2.3.2
-pytesseract
-Pillow
-pdf2image
 google-cloud-vision
