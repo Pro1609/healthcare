@@ -1,11 +1,11 @@
 from flask import Flask, render_template, request
 from google.cloud import vision
-import os, io, re
+import io, re
 
 app = Flask(__name__)
+import os
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/var/render/secrets/service_account.json"
 
-# Path to your downloaded JSON key file
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account.json"
 
 client = vision.ImageAnnotatorClient()
 
