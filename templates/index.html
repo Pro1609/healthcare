@@ -1,23 +1,18 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Healthcare AI Assistant</title>
+    <title>AI Medical Assistant</title>
 </head>
 <body>
-  <h1>Welcome to the AI Medical Assistant</h1>
-  <p>Please start by uploading your Aadhaar Card and describing your symptoms.</p>
-  
-  <form action="/submit" method="post" enctype="multipart/form-data">
-    <label for="aadhar">Upload Aadhaar Card:</label>
-    <input type="file" name="aadhar" required><br><br>
-
-    <label for="symptom">Describe Your Symptoms:</label><br>
-    <textarea name="symptom" rows="5" cols="40" required></textarea><br><br>
-
-    <button type="submit">Submit</button>
-  </form>
+    <h2>Welcome to the AI Medical Assistant</h2>
+    <form action="/submit" method="post" enctype="multipart/form-data">
+        <label>Upload Aadhaar Card:</label><br>
+        <input type="file" name="aadhar" required><br><br>
+        
+        <label>Describe Your Symptoms:</label><br>
+        <textarea name="symptom" rows="4" cols="40" placeholder="e.g. fever, fatigue" required></textarea><br><br>
+        
+        <input type="submit" value="Submit">
+    </form>
 </body>
 </html>
-
