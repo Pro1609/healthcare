@@ -4,7 +4,8 @@ import io, re
 
 app = Flask(__name__)
 import os
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/var/render/secrets/service_account.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/etc/secrets/service_account.json"
+
 
 
 client = vision.ImageAnnotatorClient()
