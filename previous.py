@@ -1,0 +1,101 @@
+from flask import Flask, render_template, request, redirect, url_for
+import requests
+import os
+import re
+import openai  # if using GPT-3.5
+
+app = Flask(__name__)
+UPLOAD_FOLDER = "static/uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Replace with your actual keys
+OCR_API_KEY = "K85073730188957"
+openai.api_key = "YOUR_OPENAI_API_KEY"
+
+@app.route('/')
+def home():
+    return redirect(url_for('symptoms'))
+
+@app.route('/symptoms')
+def symptoms():
+    return render_template("symptoms.html")
+
+@app.route('/aadhaar', methods=['POST'])
+def aadhaar():
+    name = request.form['name']
+    age = request.form['age']
+    gender = request.form['gender']
+    symptoms = request.form['symptoms']
+    aadhaar_file = request.files['aadhaar']
+    
+    filepath = os.path.join(UPLOAD_FOLDER, aadhaar_file.filename)
+    aadhaar_file.save(filepath)
+
+    # OCR call
+    ocr_result = requests.post(
+        'https://api.ocr.space/parse/image',
+        files={"filename": open(filepath, 'rb')},
+        data={"apikey": OCR_API_KEY}
+    )
+
+    try:
+        result_text = ocr_result.json()['ParsedResults'][0]['ParsedText']
+    except:
+        result_text = "OCR failed"
+
+    # Extract Aadhaar details
+    aadhaar_number = re.search(r'\d{4}\s\d{4}\s\d{4}', result_text)
+    dob = re.search(r'\d{2}/\d{2}/\d{4}', result_text)
+    extracted_name = name  # fallback
+    if "Mohammad" in result_text:
+        extracted_name = "Mohammad Shadab Raza"  # mock case
+
+    return redirect(url_for('report', 
+        name=extracted_name, 
+        age=age, 
+        gender=gender, 
+        dob=dob.group() if dob else "Unknown",
+        aadhaar=aadhaar_number.group() if aadhaar_number else "Unknown",
+        symptoms=symptoms
+    ))
+
+@app.route('/report')
+def report():
+    # Inputs from previous steps
+    name = request.args.get("name")
+    age = request.args.get("age")
+    gender = request.args.get("gender")
+    dob = request.args.get("dob")
+    aadhaar = request.args.get("aadhaar")
+    symptoms = request.args.get("symptoms")
+
+    # AI Prompt
+    prompt = f"""
+    Patient: {name}, Age: {age}, Gender: {gender}
+    Symptoms: {symptoms}
+
+    Generate SOAP format (Subjective, Objective, Assessment, Plan).
+    Also provide a TRIAGE SEVERITY score out of 10 and one-liner ADVICE.
+    """
+
+    # Call OpenAI (or mock result if no API key)
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        ai_response = response['choices'][0]['message']['content']
+    except Exception as e:
+        ai_response = f"Error calling AI: {str(e)}"
+
+    return f"""
+    <h2>SOAP Report for {name}</h2>
+    <p><b>Date of Birth:</b> {dob}</p>
+    <p><b>Aadhaar Number:</b> {aadhaar}</p>
+    <pre>{ai_response}</pre>
+    <br><br>
+    <a href='/symptoms'>🡸 Back to Start</a>
+    """
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=10000)
