@@ -1,37 +1,24 @@
+<!-- templates/symptoms.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Symptom Checker</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 30px;
-            background-color: #f8f9fa;
-        }
-        textarea {
-            width: 100%;
-            height: 120px;
-            padding: 10px;
-            font-size: 16px;
-        }
-        input[type="submit"] {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            margin-top: 10px;
-            cursor: pointer;
-        }
-    </style>
+    <title>Patient Symptom Intake</title>
 </head>
 <body>
-    <h2>🩺 Symptom Checker</h2>
-    <p>Please describe your symptoms below (e.g., fever, headache, cough...)</p>
-    <form method="POST" action="/symptoms">
-        <textarea name="symptoms" required placeholder="Enter symptoms here..."></textarea><br>
-        <input type="submit" value="Submit Symptoms">
+    <h2>Step 1: Enter Symptoms</h2>
+    <form action="/aadhaar" method="POST" enctype="multipart/form-data">
+        Name: <input type="text" name="name" required><br><br>
+        Age: <input type="number" name="age" required><br><br>
+        Gender: 
+        <select name="gender">
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+        </select><br><br>
+        Describe your symptoms:<br>
+        <textarea name="symptoms" rows="6" cols="50" required></textarea><br><br>
+        Upload Aadhaar (Image/PDF): <input type="file" name="aadhaar" required><br><br>
+        <input type="submit" value="Next: Verify Aadhaar">
     </form>
 </body>
 </html>
