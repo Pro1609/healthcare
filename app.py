@@ -51,5 +51,5 @@ def submit():
             return f"Error occurred during OCR: {str(e)}"
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=10000)  # You can choose any port like 5000, 8000, 10000
+
