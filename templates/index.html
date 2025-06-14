@@ -1,18 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AI Medical Assistant</title>
+  <title>AI Medical Assistant</title>
 </head>
 <body>
-    <h2>Welcome to the AI Medical Assistant</h2>
-    <form action="/submit" method="post" enctype="multipart/form-data">
-        <label>Upload Aadhaar Card:</label><br>
-        <input type="file" name="aadhar" required><br><br>
-
-        <label>Describe Your Symptoms:</label><br>
-        <textarea name="symptom" rows="4" cols="50" required></textarea><br><br>
-
-        <input type="submit" value="Submit">
-    </form>
+  <h2>Welcome to the AI Medical Assistant</h2>
+  <form method="POST" action="/submit" enctype="multipart/form-data">
+    <label>Upload Aadhaar Card:</label>
+    <input type="file" name="aadhar" accept=".jpg,.jpeg,.png,.pdf" required><br><br>
+    <label>Describe Your Symptoms:</label>
+    <input type="text" name="symptom" required><br><br>
+    <button type="submit">Submit</button>
+  </form>
 </body>
 </html>
