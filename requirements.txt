@@ -1,6 +1,1 @@
-Flask
-pytesseract
-Pillow
-SpeechRecognition
-transformers
-torch
+Flask==2.3.2
