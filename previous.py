@@ -1,101 +1,101 @@
-from flask import Flask, render_template, request, redirect, url_for
-import requests
+from flask import Flask, render_template, request
 import os
 import re
-import openai  # if using GPT-3.5
+import requests
+from werkzeug.utils import secure_filename
+from pdf2image import convert_from_path
+from PIL import Image
 
 app = Flask(__name__)
-UPLOAD_FOLDER = "static/uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+OCR_API_KEY = 'K85073730188957'
+OCR_API_URL = 'https://api.ocr.space/parse/image'
 
-# Replace with your actual keys
-OCR_API_KEY = "K85073730188957"
-openai.api_key = "YOUR_OPENAI_API_KEY"
+# Ensure upload folder exists
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+def extract_aadhaar_details(text):
+    aadhaar_data = {}
+
+    # Aadhaar Number
+    aadhaar_match = re.search(r'(\d{4}\s\d{4}\s\d{4}|\d{12})', text)
+    if aadhaar_match:
+        aadhaar_data["Aadhaar Number"] = aadhaar_match.group(1)
+
+    # Date of Birth
+    dob_match = re.search(r'(DOB|Year of Birth|YOB)[^\d]*(\d{2}/\d{2}/\d{4}|\d{4})', text, re.IGNORECASE)
+    if dob_match:
+        aadhaar_data["Date of Birth"] = dob_match.group(2)
+
+    # Smart Name Extraction
+    lines = text.split('\n')
+    name_candidates = []
+    for line in lines:
+        cleaned = line.strip()
+        if re.fullmatch(r'[A-Za-z\s]{5,}', cleaned) and len(cleaned.split()) >= 2:
+            name_candidates.append(cleaned)
+
+    dob_index = next((i for i, l in enumerate(lines) if re.search(r'DOB|MALE|FEMALE', l, re.IGNORECASE)), None)
+    if dob_index is not None:
+        for i in range(dob_index - 1, -1, -1):
+            cleaned = lines[i].strip()
+            if cleaned in name_candidates:
+                aadhaar_data["Name"] = cleaned
+                break
+    elif name_candidates:
+        aadhaar_data["Name"] = name_candidates[0]
+
+    return aadhaar_data
+
+def convert_pdf_to_jpg(pdf_path):
+    images = convert_from_path(pdf_path, dpi=300)
+    jpg_paths = []
+    for i, image in enumerate(images):
+        jpg_path = os.path.splitext(pdf_path)[0] + f'_{i}.jpg'
+        image.save(jpg_path, 'JPEG')
+        jpg_paths.append(jpg_path)
+    return jpg_paths
+
+def perform_ocr(filepath):
+    with open(filepath, 'rb') as f:
+        payload = {
+            'isOverlayRequired': False,
+            'apikey': OCR_API_KEY,
+            'language': 'eng'
+        }
+        files = {'file': f}
+        response = requests.post(OCR_API_URL, files=files, data=payload)
+        result = response.json()
+        if result.get("ParsedResults"):
+            return result["ParsedResults"][0]["ParsedText"]
+        else:
+            return "OCR Failed"
 
 @app.route('/')
-def home():
-    return redirect(url_for('symptoms'))
+def index():
+    return render_template('index.html')
 
-@app.route('/symptoms')
-def symptoms():
-    return render_template("symptoms.html")
+@app.route('/submit', methods=['POST'])
+def submit():
+    file = request.files['file']
+    if not file:
+        return "No file uploaded."
 
-@app.route('/aadhaar', methods=['POST'])
-def aadhaar():
-    name = request.form['name']
-    age = request.form['age']
-    gender = request.form['gender']
-    symptoms = request.form['symptoms']
-    aadhaar_file = request.files['aadhaar']
-    
-    filepath = os.path.join(UPLOAD_FOLDER, aadhaar_file.filename)
-    aadhaar_file.save(filepath)
+    filename = secure_filename(file.filename)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
 
-    # OCR call
-    ocr_result = requests.post(
-        'https://api.ocr.space/parse/image',
-        files={"filename": open(filepath, 'rb')},
-        data={"apikey": OCR_API_KEY}
-    )
+    if filename.lower().endswith('.pdf'):
+        images = convert_pdf_to_jpg(filepath)
+        text = ''
+        for img in images:
+            text += perform_ocr(img) + '\n'
+    else:
+        text = perform_ocr(filepath)
 
-    try:
-        result_text = ocr_result.json()['ParsedResults'][0]['ParsedText']
-    except:
-        result_text = "OCR failed"
+    extracted = extract_aadhaar_details(text)
 
-    # Extract Aadhaar details
-    aadhaar_number = re.search(r'\d{4}\s\d{4}\s\d{4}', result_text)
-    dob = re.search(r'\d{2}/\d{2}/\d{4}', result_text)
-    extracted_name = name  # fallback
-    if "Mohammad" in result_text:
-        extracted_name = "Mohammad Shadab Raza"  # mock case
-
-    return redirect(url_for('report', 
-        name=extracted_name, 
-        age=age, 
-        gender=gender, 
-        dob=dob.group() if dob else "Unknown",
-        aadhaar=aadhaar_number.group() if aadhaar_number else "Unknown",
-        symptoms=symptoms
-    ))
-
-@app.route('/report')
-def report():
-    # Inputs from previous steps
-    name = request.args.get("name")
-    age = request.args.get("age")
-    gender = request.args.get("gender")
-    dob = request.args.get("dob")
-    aadhaar = request.args.get("aadhaar")
-    symptoms = request.args.get("symptoms")
-
-    # AI Prompt
-    prompt = f"""
-    Patient: {name}, Age: {age}, Gender: {gender}
-    Symptoms: {symptoms}
-
-    Generate SOAP format (Subjective, Objective, Assessment, Plan).
-    Also provide a TRIAGE SEVERITY score out of 10 and one-liner ADVICE.
-    """
-
-    # Call OpenAI (or mock result if no API key)
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        ai_response = response['choices'][0]['message']['content']
-    except Exception as e:
-        ai_response = f"Error calling AI: {str(e)}"
-
-    return f"""
-    <h2>SOAP Report for {name}</h2>
-    <p><b>Date of Birth:</b> {dob}</p>
-    <p><b>Aadhaar Number:</b> {aadhaar}</p>
-    <pre>{ai_response}</pre>
-    <br><br>
-    <a href='/symptoms'>🡸 Back to Start</a>
-    """
+    return render_template('result.html', extracted_text=text, extracted=extracted)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=10000)
+    app.run(host='0.0.0.0', port=10000)
