@@ -1,16 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-    <title>OCR Result</title>
-</head>
+<head><title>Result</title></head>
 <body>
-    <h1>OCR Result</h1>
-    <p><strong>Text Extracted:</strong></p>
-    <pre>{{ text }}</pre>
-    <hr>
-    <p><strong>Uploaded File:</strong></p>
-    <img src="{{ image_path }}" alt="Uploaded File" style="max-width: 400px;">
-    <br><br>
-    <a href="/">Upload Another</a>
+  <h2>Extracted Text:</h2>
+  <pre>{{ text }}</pre>
+
+  <h2>Extracted Aadhaar Details:</h2>
+  <ul>
+    {% for key, value in aadhaar.items() %}
+      <li><strong>{{ key }}:</strong> {{ value }}</li>
+    {% endfor %}
+  </ul>
 </body>
 </html>
+
