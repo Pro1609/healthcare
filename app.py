@@ -1,51 +1,71 @@
-from flask import Flask, render_template, request, redirect, url_for
-import requests
+from flask import Flask, render_template, request
 import os
-from werkzeug.utils import secure_filename
+import requests
+import re
 
 app = Flask(__name__)
 
-# Setup upload folder
+# Create upload folder if it doesn't exist
 UPLOAD_FOLDER = 'static/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-OCR_SPACE_API_KEY = 'K85073730188957'  # Replace with your real API key
-OCR_URL = 'https://api.ocr.space/parse/image'
+# Your OCR.space API key
+OCR_API_KEY = 'K85073730188957'
 
+# Aadhaar parsing function
+def extract_aadhaar_details(text):
+    aadhaar_data = {}
+
+    # Aadhaar Number
+    aadhaar_match = re.search(r'(\d{4}\s\d{4}\s\d{4}|\d{12})', text)
+    if aadhaar_match:
+        aadhaar_data["Aadhaar Number"] = aadhaar_match.group(1)
+
+    # Date of Birth
+    dob_match = re.search(r'(DOB|Year of Birth|YOB)[^\d]*(\d{2}/\d{2}/\d{4}|\d{4})', text, re.IGNORECASE)
+    if dob_match:
+        aadhaar_data["Date of Birth"] = dob_match.group(2)
+
+    # Name (First line with only alphabets)
+    lines = text.split('\n')
+    for line in lines:
+        if re.match(r'^[A-Za-z\s]{5,}$', line.strip()):
+            aadhaar_data["Name"] = line.strip()
+            break
+
+    return aadhaar_data
+
+# Home page
 @app.route('/')
-def home():
+def index():
     return render_template('index.html')
 
+# Handle submission
 @app.route('/submit', methods=['POST'])
 def submit():
-    if 'file' not in request.files:
-        return "No file part", 400
-
     file = request.files['file']
-    if file.filename == '':
-        return "No selected file", 400
-
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     file.save(filepath)
 
-    # OCR.Space API call
     with open(filepath, 'rb') as f:
-        payload = {
-            'apikey': OCR_SPACE_API_KEY,
-            'isOverlayRequired': False,
-            'language': 'eng',
-        }
-        files = {'file': f}
-        response = requests.post(OCR_URL, files=files, data=payload)
+        response = requests.post(
+            'https://api.ocr.space/parse/image',
+            files={'file': f},
+            data={'apikey': OCR_API_KEY, 'language': 'eng'}
+        )
+
+    result = response.json()
 
     try:
-        result = response.json()
-        parsed_text = result['ParsedResults'][0]['ParsedText']
+        text = result['ParsedResults'][0]['ParsedText']
     except Exception as e:
-        return f"OCR failed: {str(e)}", 500
+        return f"<h2>Error during OCR: {e}</h2><pre>{result}</pre>"
 
-    return render_template('result.html', text=parsed_text, image_path=filepath)
+    aadhaar_info = extract_aadhaar_details(text)
 
+    return render_template('result.html', text=text, aadhaar=aadhaar_info)
+
+# Start the app (only for local testing, NOT needed on Render)
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+    app.run(debug=True, host='0.0.0.0', port=10000)
