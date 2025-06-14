@@ -1,16 +1,19 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-<head><title>Result</title></head>
+<head>
+    <title>OCR Result</title>
+</head>
 <body>
-  <h2>Extracted Text:</h2>
-  <pre>{{ text }}</pre>
+    <h2>Extracted Text:</h2>
+    <pre>{{ extracted_text }}</pre>
 
-  <h2>Extracted Aadhaar Details:</h2>
-  <ul>
-    {% for key, value in aadhaar.items() %}
-      <li><strong>{{ key }}:</strong> {{ value }}</li>
-    {% endfor %}
-  </ul>
+    <h3>Extracted Aadhaar Details:</h3>
+    <ul>
+        {% for key, value in extracted.items() %}
+        <li><strong>{{ key }}:</strong> {{ value }}</li>
+        {% endfor %}
+    </ul>
 </body>
 </html>
+
 
