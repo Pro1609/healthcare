@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 import requests
 import os
 import re
-import openai  # if using GPT-3.5
+from openai import OpenAI
 
 app = Flask(__name__)
 UPLOAD_FOLDER = "static/uploads"
@@ -10,7 +10,8 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Replace with your actual keys
 OCR_API_KEY = "K85073730188957"
-openai.api_key = "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"
+client = OpenAI(api_key="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")
+
 
 @app.route('/')
 def home():
@@ -28,7 +29,9 @@ def aadhaar():
     symptoms = request.form['symptoms']
     aadhaar_file = request.files['aadhaar']
     
-    filepath = os.path.join(UPLOAD_FOLDER, aadhaar_file.filename)
+    filename = aadhaar_file.filename.replace(" ", "_")  # remove spaces
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+
     aadhaar_file.save(filepath)
 
     # OCR call
@@ -80,11 +83,14 @@ def report():
 
     # Call OpenAI (or mock result if no API key)
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        ai_response = response['choices'][0]['message']['content']
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    ai_response = response.choices[0].message.content
+
+
+
     except Exception as e:
         ai_response = f"Error calling AI: {str(e)}"
 
