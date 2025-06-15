@@ -1,37 +1,20 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for
+import requests
 import os
 import re
-import requests
 from openai import OpenAI
 from dotenv import load_dotenv
-from werkzeug.utils import secure_filename
 
-# Initialize Flask app
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'  # needed for flashing messages
-
-# Upload folder setup
 UPLOAD_FOLDER = "static/uploads"
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Load environment variables
 load_dotenv()
+
+# API keys
 OCR_API_KEY = os.getenv("OCR_API_KEY", "K85073730188957")
 TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY", "a013eadecb34c3c39387a5218867fbd52cbc60acd68baba4a7522652790331c1")
-
-# Setup OpenAI client with Together.ai
-client = OpenAI(
-    api_key=TOGETHER_API_KEY,
-    base_url="https://api.together.xyz/v1"
-)
-
-# Utility: Check file type
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-# Routes
 
 @app.route('/')
 def home():
@@ -43,25 +26,13 @@ def symptoms():
 
 @app.route('/aadhaar', methods=['POST'])
 def aadhaar():
-    name = request.form['name']
-    age = request.form['age']
-    gender = request.form['gender']
     symptoms = request.form['symptoms']
     aadhaar_file = request.files['aadhaar']
 
-    if aadhaar_file.filename == '':
-        flash("No file selected.")
-        return redirect(request.url)
-
-    if not allowed_file(aadhaar_file.filename):
-        flash("Invalid file type. Only PNG, JPG, JPEG, and PDF allowed.")
-        return redirect(request.url)
-
-    filename = secure_filename(aadhaar_file.filename)
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    filename = aadhaar_file.filename.replace(" ", "_")
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
     aadhaar_file.save(filepath)
 
-    # OCR parsing
     ocr_result = requests.post(
         'https://api.ocr.space/parse/image',
         files={"filename": open(filepath, 'rb')},
@@ -70,55 +41,72 @@ def aadhaar():
 
     try:
         result_text = ocr_result.json()['ParsedResults'][0]['ParsedText']
-    except Exception as e:
-        result_text = "OCR failed"
-        flash("OCR parsing failed. Please try again with a clear image.")
-        return redirect(url_for('symptoms'))
+    except:
+        result_text = ""
 
-    # Aadhaar and DOB Extraction
     aadhaar_number = re.search(r'\d{4}\s\d{4}\s\d{4}', result_text)
     dob = re.search(r'\d{2}/\d{2}/\d{4}', result_text)
-    extracted_name = name  # fallback
+    name_match = re.search(r'(?i)(?<=Name:)[A-Za-z ]+', result_text)
+    gender_match = re.search(r'(?i)(male|female|other)', result_text)
 
-    # Fuzzy check for Aadhaar name (optional logic)
-    if "Mohammad" in result_text and "Raza" in result_text:
-        extracted_name = "Mohammad Shadab Raza"
+    name = name_match.group().strip() if name_match else "Unknown"
+    gender = gender_match.group().capitalize() if gender_match else "Unknown"
+
+    if not aadhaar_number or not dob or name == "Unknown" or gender == "Unknown":
+        return """
+        <h3>Invalid Aadhaar Card. Please upload a valid and clear Aadhaar image.</h3>
+        <a href='/symptoms'>🡸 Try Again</a>
+        """
 
     return redirect(url_for('report', 
-        name=extracted_name, 
-        age=age, 
-        gender=gender, 
-        dob=dob.group() if dob else "Unknown",
-        aadhaar=aadhaar_number.group() if aadhaar_number else "Unknown",
+        name=name, 
+        gender=gender,
+        dob=dob.group(),
+        aadhaar=aadhaar_number.group(),
         symptoms=symptoms
     ))
 
 @app.route('/report')
 def report():
     name = request.args.get("name")
-    age = request.args.get("age")
     gender = request.args.get("gender")
     dob = request.args.get("dob")
     aadhaar = request.args.get("aadhaar")
     symptoms = request.args.get("symptoms")
 
-    prompt = f"""
-    Patient: {name}, Age: {age}, Gender: {gender}
-    Symptoms: {symptoms}
+    # Create OpenAI client
+    client = OpenAI(api_key=os.getenv("TOGETHER_API_KEY"), base_url="https://api.together.xyz/v1")
 
-    Generate a detailed SOAP format (Subjective, Objective, Assessment, Plan).
-    Avoid hallucinating extra symptoms.
-    Also provide:
-    1. TRIAGE SEVERITY (score out of 10)
-    2. One-line health advice
-    3. Preventive measures if applicable
-    """
+    # Strict prompt to avoid hallucination
+    prompt = f"""
+The following patient details must be used *as-is* without guessing or adding symptoms:
+
+Patient Name: {name}
+Gender: {gender}
+Date of Birth: {dob}
+Aadhaar: {aadhaar}
+
+Symptoms Provided by Patient:
+{symptoms}
+
+You are a SOAP note generator. Based strictly on the symptoms provided, generate a complete SOAP format:
+- Subjective: Repeat the patient's symptoms clearly.
+- Objective: Leave this blank unless specific vitals or signs are provided.
+- Assessment: Explain possible conditions or diagnoses based on symptoms.
+- Plan: Next steps (tests, medicine, precautions etc.)
+
+Also include:
+- Triage Severity Score out of 10
+- One-line health advice based on the symptoms
+
+Do not hallucinate or add extra symptoms.
+"""
 
     try:
         response = client.chat.completions.create(
             model="mistralai/Mixtral-8x7B-Instruct-v0.1",
             messages=[
-                {"role": "system", "content": "You are a helpful SOAP note generator. Stick to given symptoms."},
+                {"role": "system", "content": "You are a helpful SOAP note generator."},
                 {"role": "user", "content": prompt}
             ]
         )
