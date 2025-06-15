@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 import requests
 import os
 import re
-import openai  # ✅ still using OpenAI-style syntax
+from openai import OpenAI
 from dotenv import load_dotenv
 
 app = Flask(__name__)
@@ -16,9 +16,11 @@ load_dotenv()
 OCR_API_KEY = os.getenv("OCR_API_KEY", "K85073730188957")
 TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY", "a013eadecb34c3c39387a5218867fbd52cbc60acd68baba4a7522652790331c1")
 
-# ✅ Setup Together.ai with OpenAI-compatible base URL
-openai.api_key = TOGETHER_API_KEY
-openai.api_base = "https://api.together.xyz/v1"
+# ✅ Initialize OpenAI client with Together API
+client = OpenAI(
+    api_key=TOGETHER_API_KEY,
+    base_url="https://api.together.xyz/v1"
+)
 
 @app.route('/')
 def home():
@@ -84,14 +86,14 @@ def report():
     """
 
     try:
-        response = openai.ChatCompletion.create(  # ✅ correct method
+        response = client.chat.completions.create(
             model="mistralai/Mixtral-8x7B-Instruct-v0.1",
             messages=[
                 {"role": "system", "content": "You are a helpful SOAP note generator."},
                 {"role": "user", "content": prompt}
             ]
         )
-        soap_note = response.choices[0].message["content"].strip()
+        soap_note = response.choices[0].message.content.strip()
     except Exception as e:
         soap_note = f"Error calling AI: {str(e)}"
 
