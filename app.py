@@ -39,63 +39,39 @@ def aadhaar():
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     aadhaar_file.save(filepath)
 
-    ocr_result = requests.post(
-        'https://api.ocr.space/parse/image',
-        files={"filename": open(filepath, 'rb')},
-        data={"apikey": OCR_API_KEY}
-    )
-
     try:
+        # Step 1: Perform OCR
+        ocr_result = requests.post(
+            'https://api.ocr.space/parse/image',
+            files={"filename": open(filepath, 'rb')},
+            data={"apikey": OCR_API_KEY}
+        )
+
         raw_text = ocr_result.json()['ParsedResults'][0]['ParsedText']
-        print("Raw OCR Extracted Text:\n", raw_text)  # 🔍 For debugging
+        print("Raw OCR Extracted Text:\n", raw_text)  # 🐞 Debug
 
+        # Step 2: Clean text using filter
         cleaned_text = clean_ocr_text(raw_text)
-        print("Cleaned OCR Text:\n", cleaned_text)  # 🔍 For debugging
+        print("Cleaned OCR Text:\n", cleaned_text)  # 🐞 Debug
 
+        # Step 3: Aadhaar field extraction
         aadhaar_number = re.search(r'\d{4}\s\d{4}\s\d{4}', cleaned_text)
-        dob = re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text)
-        name_match = re.search(r'[A-Z][a-z]+(?:\s[A-Z][a-z]+)+', cleaned_text)
+        dob = re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text) or re.search(r'\b\d{4}\b', cleaned_text)
+        name_match = re.search(r'[A-Z][a-z]+(?:\s[A-Z][a-z]+)*', cleaned_text)
 
+        # Step 4: Validation
         if not (aadhaar_number and dob and name_match):
             return f"""
             <h2>Invalid Aadhaar Card. Please upload a valid and clear Aadhaar image.</h2>
             <a href='/symptoms'>🡸 Try Again</a>
             """
 
+        # Step 5: Clean extracted values
         extracted_name = name_match.group()
         extracted_dob = dob.group().replace("-", "/")
         extracted_aadhaar = aadhaar_number.group()
 
-        return redirect(url_for('report',
-            name=extracted_name,
-            dob=extracted_dob,
-            aadhaar=extracted_aadhaar,
-            symptoms=symptoms
-        ))
-
-    except Exception as e:
-        print("OCR error:", str(e))
-        return "OCR failed. Try again."
-
-
-    try:
-        result_text = ocr_result.json()['ParsedResults'][0]['ParsedText']
-        print("OCR Extracted Text:\n", result_text)  # 🔍 Console Debugging
-
-        aadhaar_number = re.search(r'\d{4}\s\d{4}\s\d{4}', result_text)
-        dob = re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', result_text)
-        name_match = re.search(r'[A-Z][a-z]+(?:\s[A-Z][a-z]+)+', result_text)
-
-        if not (aadhaar_number and dob and name_match):
-            return f"""
-            <h2>Invalid Aadhaar Card. Please upload a valid and clear Aadhaar image.</h2>
-            <a href='/symptoms'>🡸 Try Again</a>
-            """
-
-        extracted_name = name_match.group()
-        extracted_dob = dob.group().replace("-", "/")
-        extracted_aadhaar = aadhaar_number.group()
-
+        # Step 6: Redirect to report
         return redirect(url_for('report',
             name=extracted_name,
             dob=extracted_dob,
