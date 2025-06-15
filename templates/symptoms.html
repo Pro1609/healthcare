@@ -1,24 +1,10 @@
 <!-- templates/symptoms.html -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Patient Symptom Intake</title>
-</head>
-<body>
-    <h2>Step 1: Enter Symptoms</h2>
-    <form action="/aadhaar" method="POST" enctype="multipart/form-data">
-        Name: <input type="text" name="name" required><br><br>
-        Age: <input type="number" name="age" required><br><br>
-        Gender: 
-        <select name="gender">
-            <option>Male</option>
-            <option>Female</option>
-            <option>Other</option>
-        </select><br><br>
-        Describe your symptoms:<br>
-        <textarea name="symptoms" rows="6" cols="50" required></textarea><br><br>
-        Upload Aadhaar (Image/PDF): <input type="file" name="aadhaar" required><br><br>
-        <input type="submit" value="Next: Verify Aadhaar">
-    </form>
-</body>
-</html>
+<form action="/aadhaar" method="post" enctype="multipart/form-data">
+    <label>Describe your symptoms:</label><br>
+    <textarea name="symptoms" rows="4" cols="50" required></textarea><br><br>
+
+    <label>Upload Aadhaar (Image or PDF):</label><br>
+    <input type="file" name="aadhaar" accept="image/*,application/pdf" required><br><br>
+
+    <input type="submit" value="Generate SOAP Report">
+</form>
