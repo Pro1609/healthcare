@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 import requests
 import os
 import re
-import openai  # ✅ use openai not OpenAI
+import openai  # ✅ still using OpenAI-style syntax
 from dotenv import load_dotenv
 
 app = Flask(__name__)
@@ -10,21 +10,19 @@ UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # ✅ Load environment variables
-load_dotenv()  # Only needed if running locally, Render auto-loads
+load_dotenv()
 
-# ✅ Securely fetch API keys
-OCR_API_KEY = os.getenv("OCR_API_KEY", "K85073730188957")  # fallback to default if not found
+# ✅ API keys
+OCR_API_KEY = os.getenv("OCR_API_KEY", "K85073730188957")
 TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY", "a013eadecb34c3c39387a5218867fbd52cbc60acd68baba4a7522652790331c1")
 
-# ✅ Setup Together.ai (OpenAI-compatible)
+# ✅ Setup Together.ai with OpenAI-compatible base URL
 openai.api_key = TOGETHER_API_KEY
 openai.api_base = "https://api.together.xyz/v1"
 
 @app.route('/')
 def home():
     return redirect(url_for('symptoms'))
-
-# ✅ Continue with your other routes here...
 
 @app.route('/symptoms')
 def symptoms():
@@ -38,12 +36,10 @@ def aadhaar():
     symptoms = request.form['symptoms']
     aadhaar_file = request.files['aadhaar']
     
-    filename = aadhaar_file.filename.replace(" ", "_")  # remove spaces
+    filename = aadhaar_file.filename.replace(" ", "_")
     filepath = os.path.join(UPLOAD_FOLDER, filename)
-
     aadhaar_file.save(filepath)
 
-    # OCR call
     ocr_result = requests.post(
         'https://api.ocr.space/parse/image',
         files={"filename": open(filepath, 'rb')},
@@ -55,12 +51,11 @@ def aadhaar():
     except:
         result_text = "OCR failed"
 
-    # Extract Aadhaar details
     aadhaar_number = re.search(r'\d{4}\s\d{4}\s\d{4}', result_text)
     dob = re.search(r'\d{2}/\d{2}/\d{4}', result_text)
-    extracted_name = name  # fallback
+    extracted_name = name
     if "Mohammad" in result_text:
-        extracted_name = "Mohammad Shadab Raza"  # mock case
+        extracted_name = "Mohammad Shadab Raza"
 
     return redirect(url_for('report', 
         name=extracted_name, 
@@ -73,7 +68,6 @@ def aadhaar():
 
 @app.route('/report')
 def report():
-    # Inputs from previous steps
     name = request.args.get("name")
     age = request.args.get("age")
     gender = request.args.get("gender")
@@ -81,7 +75,6 @@ def report():
     aadhaar = request.args.get("aadhaar")
     symptoms = request.args.get("symptoms")
 
-    # AI Prompt
     prompt = f"""
     Patient: {name}, Age: {age}, Gender: {gender}
     Symptoms: {symptoms}
@@ -91,14 +84,14 @@ def report():
     """
 
     try:
-        response = openai.chat.completions.create(  # ✅ this is correct for openai >=1.0.0
-            model="mistralai/Mixtral-8x7B-Instruct-v0.1",  # ✅ good Together.ai model
+        response = openai.ChatCompletion.create(  # ✅ correct method
+            model="mistralai/Mixtral-8x7B-Instruct-v0.1",
             messages=[
                 {"role": "system", "content": "You are a helpful SOAP note generator."},
                 {"role": "user", "content": prompt}
             ]
         )
-        soap_note = response.choices[0].message.content.strip()
+        soap_note = response.choices[0].message["content"].strip()
     except Exception as e:
         soap_note = f"Error calling AI: {str(e)}"
 
@@ -110,7 +103,6 @@ def report():
     <br><br>
     <a href='/symptoms'>🡸 Back to Start</a>
     """
-
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
