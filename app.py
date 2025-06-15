@@ -32,46 +32,64 @@ def symptoms():
 
 @app.route('/aadhaar', methods=['POST'])
 def aadhaar():
-    symptoms = request.form['symptoms']
-    aadhaar_file = request.files['aadhaar']
-
-    filename = aadhaar_file.filename.replace(" ", "_")
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
-    aadhaar_file.save(filepath)
-
     try:
-        # Step 1: Perform OCR
-        ocr_result = requests.post(
-            'https://api.ocr.space/parse/image',
-            files={"filename": open(filepath, 'rb')},
-            data={"apikey": OCR_API_KEY}
-        )
+        symptoms = request.form['symptoms']
+        aadhaar_file = request.files['aadhaar']
+
+        if not aadhaar_file:
+            return "<h2>No file uploaded. Please try again.</h2><a href='/symptoms'>🡸 Try Again</a>"
+
+        # Save the uploaded file
+        filename = aadhaar_file.filename.replace(" ", "_")
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
+        aadhaar_file.save(filepath)
+
+        # Perform OCR
+        with open(filepath, 'rb') as f:
+            ocr_result = requests.post(
+                'https://api.ocr.space/parse/image',
+                files={"filename": f},
+                data={"apikey": OCR_API_KEY}
+            )
 
         raw_text = ocr_result.json()['ParsedResults'][0]['ParsedText']
-        print("Raw OCR Extracted Text:\n", raw_text)  # 🐞 Debug
+        print("🔍 Raw OCR Text:\n", raw_text)
 
-        # Step 2: Clean text using filter
+        # Clean text (remove noise)
         cleaned_text = clean_ocr_text(raw_text)
-        print("Cleaned OCR Text:\n", cleaned_text)  # 🐞 Debug
+        print("🧹 Cleaned OCR Text:\n", cleaned_text)
 
-        # Step 3: Aadhaar field extraction
-        aadhaar_number = re.search(r'\d{4}\s\d{4}\s\d{4}', cleaned_text)
-        dob = re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text) or re.search(r'\b\d{4}\b', cleaned_text)
-        name_match = re.search(r'[A-Z][a-z]+(?:\s[A-Z][a-z]+)*', cleaned_text)
+        # Extract Aadhaar number
+        aadhaar_match = re.search(r'\d{4}\s\d{4}\s\d{4}', cleaned_text)
 
-        # Step 4: Validation
-        if not (aadhaar_number and dob and name_match):
-            return f"""
-            <h2>Invalid Aadhaar Card. Please upload a valid and clear Aadhaar image.</h2>
+        # Extract DOB (full or year)
+        dob_match = re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text)
+        if not dob_match:
+            dob_match = re.search(r'\b(19|20)\d{2}\b', cleaned_text)  # fallback to year only
+
+        # Extract name (fallback for all caps too)
+        name_match = (
+            re.search(r'Name[:\s]*([A-Z][a-z]+(?:\s[A-Z][a-z]+)+)', cleaned_text) or
+            re.search(r'[A-Z][a-z]+(?:\s[A-Z][a-z]+)+', cleaned_text) or
+            re.search(r'[A-Z]{3,}(?:\s[A-Z]{3,})*', cleaned_text)
+        )
+
+        if not (aadhaar_match and dob_match and name_match):
+            return """
+            <h2>❌ Aadhaar extraction failed. Please upload a clearer Aadhaar card image.</h2>
             <a href='/symptoms'>🡸 Try Again</a>
             """
 
-        # Step 5: Clean extracted values
-        extracted_name = name_match.group()
-        extracted_dob = dob.group().replace("-", "/")
-        extracted_aadhaar = aadhaar_number.group()
+        # Clean extracted values
+        extracted_name = name_match.group(1) if name_match.lastindex else name_match.group()
+        extracted_dob = dob_match.group().replace("-", "/")
+        extracted_aadhaar = aadhaar_match.group()
 
-        # Step 6: Redirect to report
+        print("✅ Extracted Name:", extracted_name)
+        print("✅ Extracted DOB:", extracted_dob)
+        print("✅ Extracted Aadhaar:", extracted_aadhaar)
+
+        # Redirect to report
         return redirect(url_for('report',
             name=extracted_name,
             dob=extracted_dob,
@@ -80,8 +98,11 @@ def aadhaar():
         ))
 
     except Exception as e:
-        print("OCR error:", str(e))
-        return "OCR failed. Try again."
+        print("⚠️ OCR Error:", str(e))
+        return """
+        <h2>Unexpected error occurred while processing the Aadhaar. Please try again.</h2>
+        <a href='/symptoms'>🡸 Try Again</a>
+        """
 
 @app.route('/report')
 def report():
