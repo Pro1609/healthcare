@@ -5,6 +5,15 @@ import requests
 from openai import OpenAI
 from dotenv import load_dotenv
 
+# Aadhaar cleaning filter load
+with open("aadhaar_filter_keywords.txt", "r") as f:
+    unwanted = [line.strip().lower() for line in f]
+
+def clean_ocr_text(text):
+    lines = text.split("\n")
+    return "\n".join(line for line in lines if all(word not in line.lower() for word in unwanted))
+
+
 load_dotenv()
 app = Flask(__name__)
 UPLOAD_FOLDER = "static/uploads"
@@ -35,6 +44,39 @@ def aadhaar():
         files={"filename": open(filepath, 'rb')},
         data={"apikey": OCR_API_KEY}
     )
+
+    try:
+        raw_text = ocr_result.json()['ParsedResults'][0]['ParsedText']
+        print("Raw OCR Extracted Text:\n", raw_text)  # 🔍 For debugging
+
+        cleaned_text = clean_ocr_text(raw_text)
+        print("Cleaned OCR Text:\n", cleaned_text)  # 🔍 For debugging
+
+        aadhaar_number = re.search(r'\d{4}\s\d{4}\s\d{4}', cleaned_text)
+        dob = re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text)
+        name_match = re.search(r'[A-Z][a-z]+(?:\s[A-Z][a-z]+)+', cleaned_text)
+
+        if not (aadhaar_number and dob and name_match):
+            return f"""
+            <h2>Invalid Aadhaar Card. Please upload a valid and clear Aadhaar image.</h2>
+            <a href='/symptoms'>🡸 Try Again</a>
+            """
+
+        extracted_name = name_match.group()
+        extracted_dob = dob.group().replace("-", "/")
+        extracted_aadhaar = aadhaar_number.group()
+
+        return redirect(url_for('report',
+            name=extracted_name,
+            dob=extracted_dob,
+            aadhaar=extracted_aadhaar,
+            symptoms=symptoms
+        ))
+
+    except Exception as e:
+        print("OCR error:", str(e))
+        return "OCR failed. Try again."
+
 
     try:
         result_text = ocr_result.json()['ParsedResults'][0]['ParsedText']
