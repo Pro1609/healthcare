@@ -3,19 +3,27 @@ import requests
 import os
 import re
 from openai import OpenAI
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Replace with your actual keys
-OCR_API_KEY = "K85073730188957"
-client = OpenAI(api_key="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")
+# ✅ Load environment variables
+load_dotenv()  # Only needed if running locally, Render auto-loads
 
+# ✅ Securely fetch API keys
+OCR_API_KEY = os.getenv("OCR_API_KEY", "K85073730188957")  # fallback to default if not found
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+# ✅ Setup OpenAI client for version >=1.0.0
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 @app.route('/')
 def home():
     return redirect(url_for('symptoms'))
+
+# ✅ Continue with your other routes here...
 
 @app.route('/symptoms')
 def symptoms():
