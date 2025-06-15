@@ -6,3 +6,4 @@ requests
 pdf2image 
 pillow
 openai
+python-dotenv
