@@ -77,13 +77,35 @@ def report():
     aadhaar = request.args.get("aadhaar")
     symptoms = request.args.get("symptoms")
 
-    prompt = f"""
-    Patient: {name}, Age: {age}, Gender: {gender}
-    Symptoms: {symptoms}
+    # Create OpenAI client (correct for openai>=1.0.0)
+    from openai import OpenAI
+    client = OpenAI(api_key=os.getenv("TOGETHER_API_KEY"), base_url="https://api.together.xyz/v1")
 
-    Generate a SOAP format (Subjective, Objective, Assessment, Plan).
-    Also provide a TRIAGE SEVERITY score out of 10 and a one-liner ADVICE.
-    """
+    # Strict prompt to avoid hallucination
+    prompt = f"""
+The following patient details must be used *as-is* without guessing or adding symptoms:
+
+Patient Name: {name}
+Age: {age}
+Gender: {gender}
+Date of Birth: {dob}
+Aadhaar: {aadhaar}
+
+Symptoms Provided by Patient:
+{symptoms}
+
+You are a SOAP note generator. Based strictly on the symptoms provided, generate a complete SOAP format:
+- Subjective: Repeat the patient's symptoms clearly.
+- Objective: Leave this blank unless specific vitals or signs are provided.
+- Assessment: Explain possible conditions or diagnoses based on symptoms.
+- Plan: Next steps (tests, medicine, precautions etc.)
+
+Also include:
+- Triage Severity Score out of 10
+- One-line health advice based on the symptoms
+
+Do not hallucinate or add extra symptoms.
+"""
 
     try:
         response = client.chat.completions.create(
@@ -105,6 +127,7 @@ def report():
     <br><br>
     <a href='/symptoms'>🡸 Back to Start</a>
     """
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
