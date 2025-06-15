@@ -90,17 +90,18 @@ def report():
     """
 
     # Call OpenAI (or mock result if no API key)
-    try:
+try:
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}]
+        messages=[
+            {"role": "system", "content": "You are a helpful SOAP note generator."},
+            {"role": "user", "content": f"Name: {name}, Age: {age}, Gender: {gender}, Symptoms: {symptoms}"}
+        ]
     )
-    ai_response = response.choices[0].message.content
+    soap_note = response.choices[0].message.content.strip()
+except Exception as e:
+    soap_note = f"Error calling AI: {str(e)}"
 
-
-
-    except Exception as e:
-        ai_response = f"Error calling AI: {str(e)}"
 
     return f"""
     <h2>SOAP Report for {name}</h2>
