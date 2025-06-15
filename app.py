@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 import requests
 import os
 import re
-from openai import OpenAI
+import openai  # ✅ use openai not OpenAI
 from dotenv import load_dotenv
 
 app = Flask(__name__)
@@ -14,10 +14,11 @@ load_dotenv()  # Only needed if running locally, Render auto-loads
 
 # ✅ Securely fetch API keys
 OCR_API_KEY = os.getenv("OCR_API_KEY", "K85073730188957")  # fallback to default if not found
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY", "a013eadecb34c3c39387a5218867fbd52cbc60acd68baba4a7522652790331c1")
 
-# ✅ Setup OpenAI client for version >=1.0.0
-client = OpenAI(api_key=OPENAI_API_KEY)
+# ✅ Setup Together.ai (OpenAI-compatible)
+openai.api_key = TOGETHER_API_KEY
+openai.api_base = "https://api.together.xyz/v1"
 
 @app.route('/')
 def home():
@@ -90,7 +91,7 @@ def report():
     """
 
     try:
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a helpful SOAP note generator."},
