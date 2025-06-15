@@ -1,20 +1,17 @@
-from flask import Flask, render_template, request, redirect, url_for
-import requests
-import os
 import re
+from flask import Flask, render_template, request, redirect, url_for
+import os
+import requests
 from openai import OpenAI
 from dotenv import load_dotenv
 
+load_dotenv()
 app = Flask(__name__)
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Load environment variables
-load_dotenv()
-
-# API keys
-OCR_API_KEY = os.getenv("OCR_API_KEY", "K85073730188957")
-TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY", "a013eadecb34c3c39387a5218867fbd52cbc60acd68baba4a7522652790331c1")
+OCR_API_KEY = os.getenv("OCR_API_KEY")
+TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
 
 @app.route('/')
 def home():
@@ -41,48 +38,46 @@ def aadhaar():
 
     try:
         result_text = ocr_result.json()['ParsedResults'][0]['ParsedText']
-    except:
-        result_text = ""
+        print("OCR Extracted Text:\n", result_text)  # 🔍 Console Debugging
 
-    aadhaar_number = re.search(r'\d{4}\s\d{4}\s\d{4}', result_text)
-    dob = re.search(r'\d{2}/\d{2}/\d{4}', result_text)
-    name_match = re.search(r'(?i)(?<=Name:)[A-Za-z ]+', result_text)
-    gender_match = re.search(r'(?i)(male|female|other)', result_text)
+        aadhaar_number = re.search(r'\d{4}\s\d{4}\s\d{4}', result_text)
+        dob = re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', result_text)
+        name_match = re.search(r'[A-Z][a-z]+(?:\s[A-Z][a-z]+)+', result_text)
 
-    name = name_match.group().strip() if name_match else "Unknown"
-    gender = gender_match.group().capitalize() if gender_match else "Unknown"
+        if not (aadhaar_number and dob and name_match):
+            return f"""
+            <h2>Invalid Aadhaar Card. Please upload a valid and clear Aadhaar image.</h2>
+            <a href='/symptoms'>🡸 Try Again</a>
+            """
 
-    if not aadhaar_number or not dob or name == "Unknown" or gender == "Unknown":
-        return """
-        <h3>Invalid Aadhaar Card. Please upload a valid and clear Aadhaar image.</h3>
-        <a href='/symptoms'>🡸 Try Again</a>
-        """
+        extracted_name = name_match.group()
+        extracted_dob = dob.group().replace("-", "/")
+        extracted_aadhaar = aadhaar_number.group()
 
-    return redirect(url_for('report', 
-        name=name, 
-        gender=gender,
-        dob=dob.group(),
-        aadhaar=aadhaar_number.group(),
-        symptoms=symptoms
-    ))
+        return redirect(url_for('report',
+            name=extracted_name,
+            dob=extracted_dob,
+            aadhaar=extracted_aadhaar,
+            symptoms=symptoms
+        ))
+
+    except Exception as e:
+        print("OCR error:", str(e))
+        return "OCR failed. Try again."
 
 @app.route('/report')
 def report():
     name = request.args.get("name")
-    gender = request.args.get("gender")
     dob = request.args.get("dob")
     aadhaar = request.args.get("aadhaar")
     symptoms = request.args.get("symptoms")
 
-    # Create OpenAI client
-    client = OpenAI(api_key=os.getenv("TOGETHER_API_KEY"), base_url="https://api.together.xyz/v1")
+    client = OpenAI(api_key=TOGETHER_API_KEY, base_url="https://api.together.xyz/v1")
 
-    # Strict prompt to avoid hallucination
     prompt = f"""
 The following patient details must be used *as-is* without guessing or adding symptoms:
 
 Patient Name: {name}
-Gender: {gender}
 Date of Birth: {dob}
 Aadhaar: {aadhaar}
 
