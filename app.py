@@ -104,6 +104,33 @@ def aadhaar():
         <a href='/symptoms'>🡸 Try Again</a>
         """
 
+def generate_soap_strict(symptoms, name, dob, aadhaar):
+    return f"""
+SOAP Report for {name}
+Date of Birth: {dob}
+Aadhaar Number: {aadhaar}
+
+SOAP Note:
+
+Subjective:
+The patient, {name}, reports the following symptoms: {symptoms}
+
+Objective:
+No vital signs or physical examination data provided.
+
+Assessment:
+The described symptoms may be associated with common conditions. Further diagnostic evaluation is recommended for a more accurate assessment.
+
+Plan:
+1. Visit a local health center or hospital for examination.
+2. Basic diagnostic tests (e.g., CBC, imaging) may be required based on symptoms.
+3. Follow general advice on hydration, rest, and symptom tracking.
+
+Triage Severity Score: 5/10
+
+One-line health advice: Please consult a doctor for further evaluation of your symptoms.
+"""
+
 @app.route('/report')
 def report():
     name = request.args.get("name")
@@ -111,11 +138,10 @@ def report():
     aadhaar = request.args.get("aadhaar")
     symptoms = request.args.get("symptoms").lower()
 
-    # Load medical keywords from the .txt file
+    # Step 1: Load symptom keywords
     with open("symptom_keywords.txt", "r") as file:
         keywords = [line.strip().lower() for line in file if line.strip()]
 
-    # Count how many keywords are present in the symptom string
     matches = sum(1 for word in keywords if word in symptoms)
 
     if matches < 2:
@@ -127,46 +153,56 @@ def report():
         <a href='/symptoms'>🡸 Back to Start</a>
         """
 
-    # Proceed with AI generation
-    client = OpenAI(api_key=TOGETHER_API_KEY, base_url="https://api.together.xyz/v1")
+    # Step 2: Prepare minimal hallucination-safe prompt
+prompt = f"""
+You are a medical assistant generating a SOAP (Subjective, Objective, Assessment, Plan) note.
 
-    prompt = f"""
-    The following patient details must be used as-is without adding new symptoms:
+Please use only the following verified patient details and the symptom description. Do not add or assume any extra symptoms or diagnoses.
 
-    Patient Name: {name}
-    Date of Birth: {dob}
-    Aadhaar: {aadhaar}
+Patient Name: {name}
+Date of Birth: {dob}
+Aadhaar: {aadhaar}
 
-    Symptoms Provided by Patient:
-    {symptoms}
+Symptoms Reported by Patient:
+"{symptoms}"
 
-    You are a SOAP note generator. Based strictly on the symptoms provided, generate a complete SOAP format:
+Instructions:
+- Use only the symptoms provided — do not fabricate or modify them.
+- The note should follow the SOAP format:
+  - Subjective: Summarize what the patient described in simple clinical language.
+  - Objective: Leave this section blank unless examination data is provided.
+  - Assessment: Explain what could be the likely causes based only on the given symptoms.
+  - Plan: Recommend reasonable next steps (e.g., rest, hydration, tests, common meds, or doctor visit).
+- Add a triage severity score out of 10 based on urgency.
+- Conclude with a one-line health advice based on the same symptoms.
 
-    - Subjective: Summarize the patient's symptoms clearly.
-    - Objective: Leave this blank unless vitals or physical signs are provided.
-    - Assessment: Discuss possible causes or medical conditions related to the symptoms.
-    - Plan: Suggest next steps (tests, medicines, referrals, lifestyle changes, etc.)
+Make the response realistic, useful, and grounded only in the data provided above.
+"""
 
-    Additionally, provide:
-    - Triage Severity Score out of 10
-    - One-line health advice based on the symptoms
 
-    Only assess based on the given symptoms. Do not invent new symptoms.
-    """
-
+    # Step 3: Try AI call
     try:
+        client = OpenAI(api_key=TOGETHER_API_KEY, base_url="https://api.together.xyz/v1")
+
         response = client.chat.completions.create(
             model="mistralai/Mixtral-8x7B-Instruct-v0.1",
             messages=[
-                {"role": "system", "content": "You are a helpful SOAP note generator."},
+                {"role": "system", "content": "Generate a SOAP note strictly from symptoms."},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=1024
         )
         soap_note = response.choices[0].message.content.strip()
-    except Exception as e:
-        soap_note = f"Error calling AI: {str(e)}"
 
+        # Optional: Add safety check — fallback if hallucination found
+        if "pain" in soap_note.lower() and "pain" not in symptoms:
+            raise ValueError("Possible hallucination detected in SOAP.")
+
+    except Exception as e:
+        # Fall back to strict rule-based generator
+        soap_note = generate_soap_strict(symptoms, name, dob, aadhaar)
+
+    # Step 4: Render the result
     return f"""
     <h2>SOAP Report for {name}</h2>
     <p><b>Date of Birth:</b> {dob}</p>
@@ -175,6 +211,7 @@ def report():
     <br><br>
     <a href='/symptoms'>🡸 Back to Start</a>
     """
+
 
 
 if __name__ == '__main__':
