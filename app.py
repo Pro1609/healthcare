@@ -89,25 +89,23 @@ def report():
     Also provide a TRIAGE SEVERITY score out of 10 and one-liner ADVICE.
     """
 
-    # Call OpenAI (or mock result if no API key)
-try:
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful SOAP note generator."},
-            {"role": "user", "content": f"Name: {name}, Age: {age}, Gender: {gender}, Symptoms: {symptoms}"}
-        ]
-    )
-    soap_note = response.choices[0].message.content.strip()
-except Exception as e:
-    soap_note = f"Error calling AI: {str(e)}"
-
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful SOAP note generator."},
+                {"role": "user", "content": f"Name: {name}, Age: {age}, Gender: {gender}, Symptoms: {symptoms}"}
+            ]
+        )
+        soap_note = response.choices[0].message.content.strip()
+    except Exception as e:
+        soap_note = f"Error calling AI: {str(e)}"
 
     return f"""
     <h2>SOAP Report for {name}</h2>
     <p><b>Date of Birth:</b> {dob}</p>
     <p><b>Aadhaar Number:</b> {aadhaar}</p>
-    <pre>{ai_response}</pre>
+    <pre>{soap_note}</pre>
     <br><br>
     <a href='/symptoms'>🡸 Back to Start</a>
     """
