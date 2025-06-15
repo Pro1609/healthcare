@@ -1,11 +1,11 @@
 import re
-from flask import Flask, render_template, request, redirect, url_for
 import os
 import requests
-from openai import OpenAI
+from flask import Flask, render_template, request, redirect, url_for
 from dotenv import load_dotenv
+import openai
 
-# Aadhaar cleaning filter load
+# Aadhaar filter keywords
 with open("aadhaar_filter_keywords.txt", "r") as f:
     unwanted = [line.strip().lower() for line in f]
 
@@ -13,7 +13,7 @@ def clean_ocr_text(text):
     lines = text.split("\n")
     return "\n".join(line for line in lines if all(word not in line.lower() for word in unwanted))
 
-
+# Setup
 load_dotenv()
 app = Flask(__name__)
 UPLOAD_FOLDER = "static/uploads"
@@ -21,6 +21,10 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 OCR_API_KEY = os.getenv("OCR_API_KEY")
 TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
+
+# Setup OpenAI client for Together AI
+openai.api_key = TOGETHER_API_KEY
+openai.base_url = "https://api.together.xyz/v1"
 
 @app.route('/')
 def home():
@@ -39,12 +43,10 @@ def aadhaar():
         if not aadhaar_file:
             return "<h2>No file uploaded. Please try again.</h2><a href='/symptoms'>🡸 Try Again</a>"
 
-        # Save the uploaded file
         filename = aadhaar_file.filename.replace(" ", "_")
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         aadhaar_file.save(filepath)
 
-        # Perform OCR
         with open(filepath, 'rb') as f:
             ocr_result = requests.post(
                 'https://api.ocr.space/parse/image',
@@ -55,19 +57,14 @@ def aadhaar():
         raw_text = ocr_result.json()['ParsedResults'][0]['ParsedText']
         print("🔍 Raw OCR Text:\n", raw_text)
 
-        # Clean text (remove noise)
         cleaned_text = clean_ocr_text(raw_text)
         print("🧹 Cleaned OCR Text:\n", cleaned_text)
 
-        # Extract Aadhaar number
         aadhaar_match = re.search(r'\d{4}\s\d{4}\s\d{4}', cleaned_text)
-
-        # Extract DOB (full or year)
         dob_match = re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text)
         if not dob_match:
-            dob_match = re.search(r'\b(19|20)\d{2}\b', cleaned_text)  # fallback to year only
+            dob_match = re.search(r'\b(19|20)\d{2}\b', cleaned_text)
 
-        # Extract name (fallback for all caps too)
         name_match = (
             re.search(r'Name[:\s]*([A-Z][a-z]+(?:\s[A-Z][a-z]+)+)', cleaned_text) or
             re.search(r'[A-Z][a-z]+(?:\s[A-Z][a-z]+)+', cleaned_text) or
@@ -80,7 +77,6 @@ def aadhaar():
             <a href='/symptoms'>🡸 Try Again</a>
             """
 
-        # Clean extracted values
         extracted_name = name_match.group(1) if name_match.lastindex else name_match.group()
         extracted_dob = dob_match.group().replace("-", "/")
         extracted_aadhaar = aadhaar_match.group()
@@ -89,7 +85,6 @@ def aadhaar():
         print("✅ Extracted DOB:", extracted_dob)
         print("✅ Extracted Aadhaar:", extracted_aadhaar)
 
-        # Redirect to report
         return redirect(url_for('report',
             name=extracted_name,
             dob=extracted_dob,
@@ -138,10 +133,8 @@ def report():
     aadhaar = request.args.get("aadhaar")
     symptoms = request.args.get("symptoms").lower()
 
-    # Step 1: Load symptom keywords
     with open("symptom_keywords.txt", "r") as file:
         keywords = [line.strip().lower() for line in file if line.strip()]
-
     matches = sum(1 for word in keywords if word in symptoms)
 
     if matches < 2:
@@ -153,8 +146,7 @@ def report():
         <a href='/symptoms'>🡸 Back to Start</a>
         """
 
-    # Step 2: Prepare minimal hallucination-safe prompt
-prompt = f"""
+    prompt = f"""
 You are a medical assistant generating a SOAP (Subjective, Objective, Assessment, Plan) note.
 
 Please use only the following verified patient details and the symptom description. Do not add or assume any extra symptoms or diagnoses.
@@ -179,12 +171,8 @@ Instructions:
 Make the response realistic, useful, and grounded only in the data provided above.
 """
 
-
-    # Step 3: Try AI call
     try:
-        client = OpenAI(api_key=TOGETHER_API_KEY, base_url="https://api.together.xyz/v1")
-
-        response = client.chat.completions.create(
+        response = openai.chat.completions.create(
             model="mistralai/Mixtral-8x7B-Instruct-v0.1",
             messages=[
                 {"role": "system", "content": "Generate a SOAP note strictly from symptoms."},
@@ -194,15 +182,13 @@ Make the response realistic, useful, and grounded only in the data provided abov
         )
         soap_note = response.choices[0].message.content.strip()
 
-        # Optional: Add safety check — fallback if hallucination found
         if "pain" in soap_note.lower() and "pain" not in symptoms:
             raise ValueError("Possible hallucination detected in SOAP.")
 
     except Exception as e:
-        # Fall back to strict rule-based generator
+        print("AI fallback reason:", str(e))
         soap_note = generate_soap_strict(symptoms, name, dob, aadhaar)
 
-    # Step 4: Render the result
     return f"""
     <h2>SOAP Report for {name}</h2>
     <p><b>Date of Birth:</b> {dob}</p>
@@ -211,8 +197,6 @@ Make the response realistic, useful, and grounded only in the data provided abov
     <br><br>
     <a href='/symptoms'>🡸 Back to Start</a>
     """
-
-
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
