@@ -86,16 +86,16 @@ def report():
     Patient: {name}, Age: {age}, Gender: {gender}
     Symptoms: {symptoms}
 
-    Generate SOAP format (Subjective, Objective, Assessment, Plan).
-    Also provide a TRIAGE SEVERITY score out of 10 and one-liner ADVICE.
+    Generate a SOAP format (Subjective, Objective, Assessment, Plan).
+    Also provide a TRIAGE SEVERITY score out of 10 and a one-liner ADVICE.
     """
 
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+        response = openai.chat.completions.create(  # ✅ this is correct for openai >=1.0.0
+            model="mistralai/Mixtral-8x7B-Instruct-v0.1",  # ✅ good Together.ai model
             messages=[
                 {"role": "system", "content": "You are a helpful SOAP note generator."},
-                {"role": "user", "content": f"Name: {name}, Age: {age}, Gender: {gender}, Symptoms: {symptoms}"}
+                {"role": "user", "content": prompt}
             ]
         )
         soap_note = response.choices[0].message.content.strip()
@@ -110,6 +110,7 @@ def report():
     <br><br>
     <a href='/symptoms'>🡸 Back to Start</a>
     """
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
