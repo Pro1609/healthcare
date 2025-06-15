@@ -74,8 +74,8 @@ def report():
 
     client = OpenAI(api_key=TOGETHER_API_KEY, base_url="https://api.together.xyz/v1")
 
-    prompt = f"""
-The following patient details must be used *as-is* without guessing or adding symptoms:
+prompt = f"""
+The following patient details must be used as-is without adding new symptoms:
 
 Patient Name: {name}
 Date of Birth: {dob}
@@ -85,17 +85,19 @@ Symptoms Provided by Patient:
 {symptoms}
 
 You are a SOAP note generator. Based strictly on the symptoms provided, generate a complete SOAP format:
-- Subjective: Repeat the patient's symptoms clearly.
-- Objective: Leave this blank unless specific vitals or signs are provided.
-- Assessment: Explain possible conditions or diagnoses based on symptoms.
-- Plan: Next steps (tests, medicine, precautions etc.)
 
-Also include:
+- Subjective: Summarize the patient's symptoms clearly.
+- Objective: Leave this blank unless vitals or physical signs are provided.
+- Assessment: Discuss possible causes or medical conditions related to the symptoms.
+- Plan: Suggest next steps (tests, medicines, referrals, lifestyle changes, etc.)
+
+Additionally, provide:
 - Triage Severity Score out of 10
 - One-line health advice based on the symptoms
 
-Do not hallucinate or add extra symptoms.
+Only assess based on the given symptoms. Do not invent new symptoms.
 """
+
 
     try:
         response = client.chat.completions.create(
@@ -103,8 +105,10 @@ Do not hallucinate or add extra symptoms.
             messages=[
                 {"role": "system", "content": "You are a helpful SOAP note generator."},
                 {"role": "user", "content": prompt}
-            ]
+            ],
+            max_tokens=1024  # Add this line
         )
+
         soap_note = response.choices[0].message.content.strip()
     except Exception as e:
         soap_note = f"Error calling AI: {str(e)}"
