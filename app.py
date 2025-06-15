@@ -70,8 +70,25 @@ def report():
     name = request.args.get("name")
     dob = request.args.get("dob")
     aadhaar = request.args.get("aadhaar")
-    symptoms = request.args.get("symptoms")
+    symptoms = request.args.get("symptoms").lower()
 
+    # Load medical keywords from the .txt file
+    with open("symptom_keywords.txt", "r") as file:
+        keywords = [line.strip().lower() for line in file if line.strip()]
+
+    # Count how many keywords are present in the symptom string
+    matches = sum(1 for word in keywords if word in symptoms)
+
+    if matches < 2:
+        return f"""
+        <h2>Invalid Symptom Description</h2>
+        <p>Your input doesn't seem to describe enough medical symptoms.</p>
+        <p>Please try again with more specific symptoms (e.g., 'fever and headache after eating').</p>
+        <br><br>
+        <a href='/symptoms'>🡸 Back to Start</a>
+        """
+
+    # Proceed with AI generation
     client = OpenAI(api_key=TOGETHER_API_KEY, base_url="https://api.together.xyz/v1")
 
     prompt = f"""
@@ -119,6 +136,7 @@ def report():
     <br><br>
     <a href='/symptoms'>🡸 Back to Start</a>
     """
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
