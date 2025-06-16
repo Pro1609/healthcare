@@ -1,194 +1,196 @@
-body {
+/* Global Reset and Dark Theme */
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  background-color: #1e1e1e;
-  color: white;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #1c1c1c;
+  color: #ffffff;
   font-family: 'Segoe UI', sans-serif;
   overflow-x: hidden;
 }
 
+/* Main container */
 .container {
   display: flex;
-  flex-direction: row-reverse;
-  min-height: 100vh;
-  padding: 20px;
-}
-
-.step-bar {
-  width: 60px;
-  background-color: #2b2b2b;
-  padding: 20px 10px;
-  border-radius: 15px 0 0 15px;
-  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
-}
-
-.step-bar ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-.step-bar ul li {
-  width: 40px;
-  height: 40px;
-  margin: 15px auto;
-  background-color: #4c4c4c;
-  color: white;
-  border-radius: 50%;
-  text-align: center;
-  line-height: 40px;
-  font-weight: bold;
-  transition: background 0.3s ease;
-}
-
-.step-bar ul li.active {
-  background-color: #5f27cd;
-  box-shadow: 0 0 10px #7649e0;
-}
-
-.form-box {
-  background-color: #2b2b2b;
+  flex-direction: row;
   padding: 40px;
-  margin: auto;
-  max-width: 600px;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Symptoms box */
+.symptoms-container {
+  background-color: #2e2e2e;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
   width: 100%;
-  border-radius: 15px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
-  animation: fadeIn 0.6s ease-in;
+  max-width: 600px;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Header text */
+.symptoms-container h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #ffffff;
 }
 
-label {
-  display: block;
-  margin-top: 20px;
-  font-weight: bold;
-  color: #ccc;
+.symptoms-container label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #cccccc;
 }
 
+/* Input area */
 textarea {
   width: 100%;
-  height: 100px;
-  padding: 15px;
-  border-radius: 10px;
+  height: 120px;
+  margin-top: 8px;
+  margin-bottom: 24px;
   border: none;
-  background-color: #444;
-  color: white;
-  resize: none;
+  border-radius: 12px;
+  padding: 12px;
   font-size: 16px;
+  background-color: #3c3c3c;
+  color: #ffffff;
+  resize: none;
 }
 
-.slider-container {
-  display: flex;
-  align-items: center;
-  margin-top: 10px;
+/* Severity Section */
+.severity-section {
+  margin-bottom: 24px;
+}
+
+.severity-label {
+  font-size: 15px;
+  margin-bottom: 8px;
+  color: #dddddd;
 }
 
 input[type="range"] {
-  flex: 1;
-  margin-right: 10px;
+  width: 100%;
+  height: 18px;
+  border-radius: 8px;
   -webkit-appearance: none;
-  background: #5f27cd;
-  height: 8px;
-  border-radius: 5px;
-  outline: none;
+  background: #4b4b4b;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 20px;
   height: 20px;
-  background: #fff;
+  width: 20px;
   border-radius: 50%;
-  box-shadow: 0 0 5px #7649e0;
+  background: #b37df2;
   cursor: pointer;
-  transition: background 0.3s ease;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
 }
 
-button[type="submit"] {
-  margin-top: 30px;
+/* Continue Button */
+button.continue-btn {
   width: 100%;
-  background-color: #5f27cd;
-  color: white;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  background-color: #7649e0;
   border: none;
-  padding: 15px;
+  color: #ffffff;
   border-radius: 10px;
-  font-size: 18px;
+  transition: background 0.3s ease;
   cursor: pointer;
-  transition: background-color 0.3s ease;
 }
 
-button[type="submit"]:hover {
+button.continue-btn:hover {
+  background-color: #9c6aff;
+}
+
+/* Step Bar */
+.stepbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 10px;
+  background-color: #282828;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.05);
+}
+
+.stepbar div {
+  width: 36px;
+  height: 36px;
+  background-color: #444;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
+}
+
+.stepbar .active {
   background-color: #7649e0;
 }
 
-@media screen and (max-width: 768px) {
-  .container {
-    flex-direction: column-reverse;
-    padding: 10px;
-  }
-
-  .step-bar {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    border-radius: 15px;
-    margin-bottom: 20px;
-    padding: 10px 0;
-  }
-
-  .step-bar ul {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-  }
-
-  .step-bar ul li {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
-    line-height: 32px;
-    margin: 0;
-  }
+/* SCROLLBAR HIDE */
+body::-webkit-scrollbar {
+  display: none;
 }
 
-@media screen and (max-width: 480px) {
-  .form-box {
+/* ----------------------------------
+   Responsive Design: Mobile First
+----------------------------------- */
+@media screen and (max-width: 600px) {
+  .container {
+    flex-direction: column;
     padding: 20px;
-    border-radius: 12px;
-    box-shadow: none;
   }
 
-  label {
-    font-size: 14px;
+  .symptoms-container {
+    padding: 20px;
+    width: 95vw;
+    margin: 0 auto;
+    border-radius: 14px;
   }
 
   textarea {
-    font-size: 14px;
-    padding: 10px;
+    height: 100px;
+    font-size: 15px;
+  }
+
+  .stepbar {
+    flex-direction: row;
+    position: fixed;
+    bottom: 10px;
+    top: auto;
+    right: 50%;
+    transform: translateX(50%);
+    width: auto;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background-color: #2c2c2c;
+    z-index: 999;
+  }
+
+  .stepbar div {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
   }
 
   input[type="range"] {
-    height: 6px;
+    height: 24px;
   }
-
-  input[type="range"]::-webkit-slider-thumb {
-    width: 16px;
-    height: 16px;
-  }
-
-  button[type="submit"] {
-    padding: 12px;
-    font-size: 16px;
-  }
-}
-
-/* Prevent horizontal scroll */
-html, body {
-  max-width: 100vw;
-  overflow-x: hidden;
 }
