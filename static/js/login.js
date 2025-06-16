@@ -26,13 +26,14 @@ window.onload = () => {
 let confirmationResult;
 
 function sendOTP() {
-  const phoneNumber = document.getElementById('phone').value.trim();
-  
-  if (!/^\+91\d{10}$/.test(phoneNumber)) {
-    alert("Please enter a valid Indian phone number in the format +91xxxxxxxxxx");
+  let raw = document.getElementById('phone').value.trim();
+
+  if (!/^\d{10}$/.test(raw)) {
+    alert("Please enter a valid 10-digit Indian phone number.");
     return;
   }
 
+  const phoneNumber = "+91" + raw;
   const appVerifier = window.recaptchaVerifier;
 
   firebase.auth().signInWithPhoneNumber(phoneNumber, appVerifier)
@@ -45,6 +46,7 @@ function sendOTP() {
       alert("OTP sending failed. Make sure your number is valid and try again.");
     });
 }
+
 
 function verifyOTP() {
   const code = document.getElementById('otp').value.trim();
