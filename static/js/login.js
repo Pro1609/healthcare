@@ -1,80 +1,74 @@
-// Firebase config (replace with yours)
-const firebaseConfig = {
-  apiKey: "AIzaSyCUCtrzLGYo7RVP0tLO7_bXju0Otn9mofo",
-  authDomain: "auth-3438b.firebaseapp.com",
-  projectId: "auth-3438b",
-  storageBucket: "auth-3438b.appspot.com",
-  messagingSenderId: "957059014720",
-  appId: "1:957059014720:web:xyz" // Replace if needed
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-
-// Setup reCAPTCHA with dark theme
-window.onload = () => {
-  window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-    size: 'normal',
-    theme: 'dark',
-    callback: (response) => {
-      console.log("✅ reCAPTCHA solved");
-    },
-    'expired-callback': () => {
-      alert("reCAPTCHA expired. Please refresh and try again.");
-    }
-  });
-  recaptchaVerifier.render().then(widgetId => {
-    window.recaptchaWidgetId = widgetId;
-  });
-};
-
-let confirmationResult = null;
-
-// Send OTP to user's phone number
-function sendOTP() {
-  let phoneInput = document.getElementById('phone').value.trim();
-
-  // Auto-format phone number
-  if (!phoneInput.startsWith("+91")) {
-    phoneInput = "+91" + phoneInput;
+function formatPhoneNumber(raw) {
+  let cleaned = raw.trim().replace(/[^0-9]/g, '');
+  if (cleaned.length === 10) {
+    return "+91" + cleaned;
+  } else if (cleaned.length === 12 && cleaned.startsWith("91")) {
+    return "+" + cleaned;
+  } else if (cleaned.length === 13 && cleaned.startsWith("+91")) {
+    return cleaned;
+  } else {
+    return null;
   }
-
-  const appVerifier = window.recaptchaVerifier;
-
-  firebase.auth().signInWithPhoneNumber(phoneInput, appVerifier)
-    .then(result => {
-      confirmationResult = result;
-      alert("✅ OTP sent to " + phoneInput);
-    })
-    .catch(error => {
-      console.error("❌ OTP Send Error:", error);
-      alert("Failed to send OTP. Ensure number is valid and try again.");
-    });
 }
 
-// Verify the OTP entered by the user
-function verifyOTP() {
-  const code = document.getElementById('otp').value.trim();
+function sendOTP() {
+  const phoneInput = document.getElementById("phone").value;
+  const formatted = formatPhoneNumber(phoneInput);
 
-  if (!confirmationResult) {
-    alert("You must first request an OTP.");
+  if (!formatted) {
+    alert("Please enter a valid Indian mobile number.");
     return;
   }
 
-  confirmationResult.confirm(code)
-    .then(result => {
-      const user = result.user;
-      console.log("✅ Phone verified:", user.phoneNumber);
-      localStorage.setItem("user", user.phoneNumber);
-      window.location.href = "/symptoms";
-    })
-    .catch(error => {
-      console.error("❌ OTP Verification Error:", error);
-      alert("Invalid OTP. Please try again.");
-    });
+  fetch('/send-otp', {
+    method: "POST",
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone: formatted })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert("OTP sent successfully!");
+    } else {
+      alert("Failed to send OTP: " + data.error);
+    }
+  })
+  .catch(err => {
+    console.error("Error:", err);
+    alert("Error sending OTP. Try again.");
+  });
 }
 
-// Continue as guest (no auth, just store label)
+function verifyOTP() {
+  const otp = document.getElementById("otp").value;
+  const phoneInput = document.getElementById("phone").value;
+  const formatted = formatPhoneNumber(phoneInput);
+
+  if (!formatted || otp.trim().length < 4) {
+    alert("Enter valid phone number and OTP.");
+    return;
+  }
+
+  fetch('/verify-otp', {
+    method: "POST",
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone: formatted, otp })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      localStorage.setItem("user", formatted);
+      window.location.href = "/symptoms";
+    } else {
+      alert("OTP verification failed.");
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    alert("An error occurred.");
+  });
+}
+
 function continueAsGuest() {
   localStorage.setItem("user", "guest");
   window.location.href = "/symptoms";
