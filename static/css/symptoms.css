@@ -4,6 +4,7 @@ body {
   background-color: #1e1e1e;
   color: white;
   font-family: 'Segoe UI', sans-serif;
+  overflow-x: hidden;
 }
 
 .container {
@@ -137,66 +138,57 @@ button[type="submit"]:hover {
     justify-content: center;
     border-radius: 15px;
     margin-bottom: 20px;
+    padding: 10px 0;
   }
 
   .step-bar ul {
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    justify-content: center;
   }
 
   .step-bar ul li {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    line-height: 32px;
     margin: 0;
   }
 }
 
-/* Mobile Optimization */
-@media screen and (max-width: 600px) {
-  .symptoms-container {
+@media screen and (max-width: 480px) {
+  .form-box {
     padding: 20px;
-    margin: 0 auto;
-    width: 95vw;
-    max-width: 100%;
-    box-sizing: border-box;
     border-radius: 12px;
+    box-shadow: none;
+  }
+
+  label {
+    font-size: 14px;
   }
 
   textarea {
-    width: 100%;
-    font-size: 16px;
-  }
-
-  .severity-bar {
-    width: 100%;
-    padding: 0;
-    margin-top: 20px;
+    font-size: 14px;
+    padding: 10px;
   }
 
   input[type="range"] {
-    width: 100%;
-    height: 28px;
+    height: 6px;
   }
 
-  .stepbar {
-    position: fixed;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    flex-direction: column;
-    gap: 10px;
-    padding: 8px;
-    background-color: #333;
-    border-radius: 8px 0 0 8px;
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+  input[type="range"]::-webkit-slider-thumb {
+    width: 16px;
+    height: 16px;
   }
 
-  .stepbar div {
-    width: 24px;
-    height: 24px;
-    font-size: 14px;
+  button[type="submit"] {
+    padding: 12px;
+    font-size: 16px;
   }
 }
 
-/* Prevent horizontal scroll in any case */
-body, html {
+/* Prevent horizontal scroll */
+html, body {
+  max-width: 100vw;
   overflow-x: hidden;
 }
