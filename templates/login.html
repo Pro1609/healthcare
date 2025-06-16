@@ -4,16 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CareConnect - Login</title>
-  <link rel="stylesheet" href="/static/css/login.css" />
+  <link rel="stylesheet" href="/static/css/login.css">
 </head>
 <body>
   <div class="login-container">
     <h2>Sign In to Continue</h2>
+    <input type="tel" id="phone" placeholder="Enter phone number e.g. 9876543210" required>
 
-    <input type="tel" id="phone" placeholder="Enter phone number (+91xxxxxxxxxx)" required />
     <button onclick="sendOTP()">Send OTP</button>
 
-    <input type="text" id="otp" placeholder="Enter OTP" />
+    <input type="text" id="otp" placeholder="Enter OTP">
     <button onclick="verifyOTP()">Verify OTP</button>
 
     <div class="separator">OR</div>
