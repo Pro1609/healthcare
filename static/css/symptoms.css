@@ -1,0 +1,128 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #1c1c1e;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+}
+
+.steps-bar {
+  display: flex;
+  flex-direction: column;
+  background-color: #2a2a2d;
+  padding: 20px 10px;
+  min-width: 60px;
+  align-items: center;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.step {
+  background-color: #444;
+  color: #bbb;
+  padding: 10px 15px;
+  margin: 10px 0;
+  border-radius: 50%;
+  text-align: center;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step.active {
+  background-color: #5f27cd;
+  color: white;
+  font-weight: bold;
+}
+
+.form-container {
+  flex: 1;
+  padding: 30px;
+  background-color: #2a2a2d;
+  border-radius: 15px;
+  margin: auto;
+  max-width: 600px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+textarea {
+  width: 100%;
+  height: 120px;
+  padding: 15px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 25px;
+  background-color: #333;
+  color: white;
+}
+
+label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+input[type=range] {
+  width: 80%;
+  appearance: none;
+  height: 6px;
+  background: #5f27cd;
+  border-radius: 5px;
+  outline: none;
+  margin-bottom: 10px;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+span#severity-value {
+  font-size: 18px;
+  font-weight: bold;
+  background: #444;
+  padding: 5px 10px;
+  border-radius: 6px;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  background-color: #5f27cd;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #7649e0;
+}
+
+@media (max-width: 768px) {
+  .wrapper {
+    flex-direction: column;
+  }
+  .steps-bar {
+    flex-direction: row;
+    justify-content: center;
+    border-radius: 0;
+  }
+  .step {
+    margin: 5px;
+  }
+}
