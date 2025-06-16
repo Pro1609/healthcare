@@ -1,62 +1,31 @@
+<!-- login.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Login | AI Medical Assistant</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f4f8;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .login-box {
-      background: white;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
-      text-align: center;
-      width: 90%;
-      max-width: 400px;
-    }
-    .login-box h2 {
-      margin-bottom: 20px;
-      color: #333;
-    }
-    .login-box input {
-      padding: 10px;
-      width: 90%;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    .login-box button {
-      padding: 10px 20px;
-      background-color: #0074D9;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      margin: 10px;
-      cursor: pointer;
-    }
-    .login-box button:hover {
-      background-color: #005fa3;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - CareConnect</title>
+  <link rel="stylesheet" href="/static/css/login.css" />
 </head>
 <body>
-  <div class="login-box">
-    <h2>Welcome</h2>
-    <form action="/symptoms" method="get">
-      <input type="tel" name="phone" placeholder="Enter Mobile Number" required>
-      <br>
-      <button type="submit">Login with Mobile</button>
-    </form>
-    <form action="/symptoms" method="get">
-      <button type="submit">Continue as Guest</button>
-    </form>
+  <div class="login-container">
+    <div class="login-box">
+      <h2>Welcome to CareConnect</h2>
+      <p class="subtitle">Sign in to continue or proceed as a guest</p>
+
+      <form>
+        <label for="phone">Mobile Number</label>
+        <input type="tel" id="phone" name="phone" placeholder="Enter your number" required />
+
+        <button type="submit">Send OTP</button>
+
+        <div class="divider">or</div>
+
+        <a href="/symptoms" class="guest-link">Continue as Guest</a>
+      </form>
+    </div>
   </div>
+
+  <script src="/static/js/login.js"></script>
 </body>
 </html>
