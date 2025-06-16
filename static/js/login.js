@@ -1,29 +1,17 @@
-function formatPhoneNumber(raw) {
-  let cleaned = raw.trim().replace(/[^0-9]/g, '');
-  if (cleaned.length === 10) {
-    return "+91" + cleaned;
-  } else if (cleaned.length === 12 && cleaned.startsWith("91")) {
-    return "+" + cleaned;
-  } else if (cleaned.length === 13 && cleaned.startsWith("+91")) {
-    return cleaned;
-  } else {
-    return null;
-  }
-}
+const phoneInput = document.getElementById("phone");
+const otpInput = document.getElementById("otp");
 
 function sendOTP() {
-  const phoneInput = document.getElementById("phone").value;
-  const formatted = formatPhoneNumber(phoneInput);
-
-  if (!formatted) {
-    alert("Please enter a valid Indian mobile number.");
+  const number = phoneInput.value;
+  if (!number.startsWith("+")) {
+    alert("Please enter phone number in international format, e.g. +917852910701");
     return;
   }
 
-  fetch('/send-otp', {
+  fetch("/send-otp", {
     method: "POST",
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ phone: formatted })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ number })
   })
   .then(res => res.json())
   .then(data => {
@@ -32,40 +20,26 @@ function sendOTP() {
     } else {
       alert("Failed to send OTP: " + data.error);
     }
-  })
-  .catch(err => {
-    console.error("Error:", err);
-    alert("Error sending OTP. Try again.");
   });
 }
 
 function verifyOTP() {
-  const otp = document.getElementById("otp").value;
-  const phoneInput = document.getElementById("phone").value;
-  const formatted = formatPhoneNumber(phoneInput);
+  const number = phoneInput.value;
+  const code = otpInput.value;
 
-  if (!formatted || otp.trim().length < 4) {
-    alert("Enter valid phone number and OTP.");
-    return;
-  }
-
-  fetch('/verify-otp', {
+  fetch("/verify-otp", {
     method: "POST",
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ phone: formatted, otp })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ number, code })
   })
   .then(res => res.json())
   .then(data => {
     if (data.success) {
-      localStorage.setItem("user", formatted);
+      localStorage.setItem("user", number);
       window.location.href = "/symptoms";
     } else {
-      alert("OTP verification failed.");
+      alert("OTP verification failed: " + data.error);
     }
-  })
-  .catch(err => {
-    console.error(err);
-    alert("An error occurred.");
   });
 }
 
