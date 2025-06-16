@@ -1,128 +1,150 @@
 body {
   margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #1c1c1e;
+  padding: 0;
+  background-color: #1e1e1e;
   color: white;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row-reverse;
   min-height: 100vh;
+  padding: 20px;
 }
 
-.wrapper {
-  display: flex;
-  flex-direction: row;
-  height: 100vh;
-}
-
-.steps-bar {
-  display: flex;
-  flex-direction: column;
-  background-color: #2a2a2d;
+.step-bar {
+  width: 60px;
+  background-color: #2b2b2b;
   padding: 20px 10px;
-  min-width: 60px;
-  align-items: center;
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
+  border-radius: 15px 0 0 15px;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
 }
 
-.step {
-  background-color: #444;
-  color: #bbb;
-  padding: 10px 15px;
-  margin: 10px 0;
-  border-radius: 50%;
-  text-align: center;
+.step-bar ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.step-bar ul li {
   width: 40px;
   height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.step.active {
-  background-color: #5f27cd;
+  margin: 15px auto;
+  background-color: #4c4c4c;
   color: white;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 40px;
   font-weight: bold;
+  transition: background 0.3s ease;
 }
 
-.form-container {
-  flex: 1;
-  padding: 30px;
-  background-color: #2a2a2d;
-  border-radius: 15px;
+.step-bar ul li.active {
+  background-color: #5f27cd;
+  box-shadow: 0 0 10px #7649e0;
+}
+
+.form-box {
+  background-color: #2b2b2b;
+  padding: 40px;
   margin: auto;
   max-width: 600px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  width: 100%;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+  animation: fadeIn 0.6s ease-in;
 }
 
-textarea {
-  width: 100%;
-  height: 120px;
-  padding: 15px;
-  font-size: 16px;
-  border-radius: 10px;
-  border: none;
-  margin-bottom: 25px;
-  background-color: #333;
-  color: white;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 label {
   display: block;
-  margin-bottom: 10px;
-  font-weight: 600;
+  margin-top: 20px;
+  font-weight: bold;
+  color: #ccc;
 }
 
-input[type=range] {
-  width: 80%;
-  appearance: none;
-  height: 6px;
-  background: #5f27cd;
-  border-radius: 5px;
-  outline: none;
-  margin-bottom: 10px;
+textarea {
+  width: 100%;
+  height: 100px;
+  padding: 15px;
+  border-radius: 10px;
+  border: none;
+  background-color: #444;
+  color: white;
+  resize: none;
+  font-size: 16px;
 }
 
 .slider-container {
   display: flex;
   align-items: center;
-  gap: 15px;
+  margin-top: 10px;
 }
 
-span#severity-value {
-  font-size: 18px;
-  font-weight: bold;
-  background: #444;
-  padding: 5px 10px;
-  border-radius: 6px;
+input[type="range"] {
+  flex: 1;
+  margin-right: 10px;
+  -webkit-appearance: none;
+  background: #5f27cd;
+  height: 8px;
+  border-radius: 5px;
+  outline: none;
 }
 
-button {
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 5px #7649e0;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+button[type="submit"] {
+  margin-top: 30px;
   width: 100%;
-  padding: 14px;
-  font-size: 16px;
-  border: none;
-  border-radius: 10px;
   background-color: #5f27cd;
   color: white;
+  border: none;
+  padding: 15px;
+  border-radius: 10px;
+  font-size: 18px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s ease;
 }
 
-button:hover {
+button[type="submit"]:hover {
   background-color: #7649e0;
 }
 
-@media (max-width: 768px) {
-  .wrapper {
-    flex-direction: column;
+@media screen and (max-width: 768px) {
+  .container {
+    flex-direction: column-reverse;
+    padding: 10px;
   }
-  .steps-bar {
+
+  .step-bar {
+    width: 100%;
+    display: flex;
     flex-direction: row;
     justify-content: center;
-    border-radius: 0;
+    border-radius: 15px;
+    margin-bottom: 20px;
   }
-  .step {
-    margin: 5px;
+
+  .step-bar ul {
+    display: flex;
+    gap: 10px;
+  }
+
+  .step-bar ul li {
+    margin: 0;
   }
 }
