@@ -23,6 +23,10 @@ TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_VERIFY_SERVICE_SID = os.getenv("TWILIO_VERIFY_SERVICE_SID")
 
+print("🔐 TWILIO_ACCOUNT_SID:", TWILIO_ACCOUNT_SID)
+print("🔐 TWILIO_AUTH_TOKEN:", TWILIO_AUTH_TOKEN)
+print("🔐 TWILIO_VERIFY_SERVICE_SID:", TWILIO_VERIFY_SERVICE_SID)
+
 # 🔹 OpenAI client config for Together AI
 openai.api_key = TOGETHER_API_KEY
 openai.base_url = "https://api.together.xyz/v1"
