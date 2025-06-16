@@ -1,9 +1,8 @@
-html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CareConnect - Login</title>
   <link rel="stylesheet" href="/static/login.css">
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -11,17 +10,22 @@ html
   <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
-  <div class="login-container">
-    <h2>Sign In to Continue</h2>
-    <input type="tel" id="phone" placeholder="Enter phone number e.g. +91xxxxxxxxxx" required>
-    <div id="recaptcha-container"></div>
-    <button onclick="sendOTP()">Send OTP</button>
+  <div class="login-wrapper">
+    <div class="login-card">
+      <h2>Welcome to CareConnect</h2>
+      <p class="subtext">Login with mobile or continue as guest</p>
 
-    <input type="text" id="otp" placeholder="Enter OTP">
-    <button onclick="verifyOTP()">Verify OTP</button>
+      <input type="tel" id="phone" placeholder="+91xxxxxxxxxx" required />
+      <div id="recaptcha-container"></div>
+      <button onclick="sendOTP()">Send OTP</button>
 
-    <div class="separator">OR</div>
-    <button onclick="continueAsGuest()" class="guest-btn">Continue as Guest</button>
+      <input type="text" id="otp" placeholder="Enter OTP" />
+      <button onclick="verifyOTP()">Verify OTP</button>
+
+      <div class="separator">OR</div>
+
+      <button onclick="continueAsGuest()" class="guest-btn">Continue as Guest</button>
+    </div>
   </div>
 
   <script src="/static/login.js"></script>
