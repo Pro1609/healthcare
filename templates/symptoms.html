@@ -1,10 +1,38 @@
-<!-- templates/symptoms.html -->
-<form action="/aadhaar" method="post" enctype="multipart/form-data">
-    <label>Describe your symptoms:</label><br>
-    <textarea name="symptoms" rows="4" cols="50" required></textarea><br><br>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Symptoms - CareConnect</title>
+  <link rel="stylesheet" href="/static/css/symptoms.css">
+  <script src="/static/js/symptoms.js" defer></script>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="steps-bar">
+      <div class="step active">1</div>
+      <div class="step">2</div>
+      <div class="step">3</div>
+      <div class="step">4</div>
+      <div class="step">5</div>
+      <div class="step">6</div>
+      <div class="step">7</div>
+    </div>
 
-    <label>Upload Aadhaar (Image or PDF):</label><br>
-    <input type="file" name="aadhaar" accept="image/*,application/pdf" required><br><br>
+    <div class="form-container">
+      <h2>Describe Your Symptoms</h2>
+      <form action="/aadhaar" method="post" enctype="multipart/form-data">
+        <textarea name="symptoms" placeholder="Describe your symptoms in detail..." required></textarea>
 
-    <input type="submit" value="Generate SOAP Report">
-</form>
+        <label for="severity">Severity Level</label>
+        <div class="slider-container">
+          <input type="range" min="0" max="10" value="5" id="severity" name="severity" onchange="updateSeverity(this.value)">
+          <span id="severity-value">5</span>
+        </div>
+
+        <button type="submit">Next</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
