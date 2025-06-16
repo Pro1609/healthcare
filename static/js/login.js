@@ -1,70 +1,80 @@
+// Firebase config (replace with yours)
 const firebaseConfig = {
   apiKey: "AIzaSyCUCtrzLGYo7RVP0tLO7_bXju0Otn9mofo",
   authDomain: "auth-3438b.firebaseapp.com",
   projectId: "auth-3438b",
   storageBucket: "auth-3438b.appspot.com",
   messagingSenderId: "957059014720",
-  appId: "1:957059014720:web:xyz"
+  appId: "1:957059014720:web:xyz" // Replace if needed
 };
 
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
-// Set up reCAPTCHA verifier on page load
+// Setup reCAPTCHA with dark theme
 window.onload = () => {
   window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
     size: 'normal',
-    callback: function(response) {
-      console.log("reCAPTCHA solved");
+    theme: 'dark',
+    callback: (response) => {
+      console.log("✅ reCAPTCHA solved");
     },
-    'expired-callback': function() {
-      alert("reCAPTCHA expired. Please solve again.");
+    'expired-callback': () => {
+      alert("reCAPTCHA expired. Please refresh and try again.");
     }
   });
-  recaptchaVerifier.render();
+  recaptchaVerifier.render().then(widgetId => {
+    window.recaptchaWidgetId = widgetId;
+  });
 };
 
-let confirmationResult;
+let confirmationResult = null;
 
+// Send OTP to user's phone number
 function sendOTP() {
-  let raw = document.getElementById('phone').value.trim();
+  let phoneInput = document.getElementById('phone').value.trim();
 
-  if (!/^\d{10}$/.test(raw)) {
-    alert("Please enter a valid 10-digit Indian phone number.");
-    return;
+  // Auto-format phone number
+  if (!phoneInput.startsWith("+91")) {
+    phoneInput = "+91" + phoneInput;
   }
 
-  const phoneNumber = "+91" + raw;
   const appVerifier = window.recaptchaVerifier;
 
-  firebase.auth().signInWithPhoneNumber(phoneNumber, appVerifier)
+  firebase.auth().signInWithPhoneNumber(phoneInput, appVerifier)
     .then(result => {
       confirmationResult = result;
-      alert("✅ OTP Sent Successfully!");
+      alert("✅ OTP sent to " + phoneInput);
     })
     .catch(error => {
-      console.error("❌ OTP Error:", error);
-      alert("OTP sending failed. Make sure your number is valid and try again.");
+      console.error("❌ OTP Send Error:", error);
+      alert("Failed to send OTP. Ensure number is valid and try again.");
     });
 }
 
-
+// Verify the OTP entered by the user
 function verifyOTP() {
   const code = document.getElementById('otp').value.trim();
-  if (!code || code.length < 6) {
-    alert("Enter the 6-digit OTP.");
+
+  if (!confirmationResult) {
+    alert("You must first request an OTP.");
     return;
   }
 
-  confirmationResult.confirm(code).then(result => {
-    const user = result.user;
-    localStorage.setItem("user", JSON.stringify(user.phoneNumber));
-    window.location.href = "/symptoms";
-  }).catch(error => {
-    console.error("❌ OTP Verification Error:", error);
-    alert("Invalid OTP. Please try again.");
-  });
+  confirmationResult.confirm(code)
+    .then(result => {
+      const user = result.user;
+      console.log("✅ Phone verified:", user.phoneNumber);
+      localStorage.setItem("user", user.phoneNumber);
+      window.location.href = "/symptoms";
+    })
+    .catch(error => {
+      console.error("❌ OTP Verification Error:", error);
+      alert("Invalid OTP. Please try again.");
+    });
 }
 
+// Continue as guest (no auth, just store label)
 function continueAsGuest() {
   localStorage.setItem("user", "guest");
   window.location.href = "/symptoms";
