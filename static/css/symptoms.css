@@ -124,8 +124,11 @@ button.continue-btn:hover {
   background-color: #282828;
   border-radius: 12px;
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.05);
+  z-index: 1000; /* ✅ Ensure it stays above other content */
+  list-style: none; /* ✅ Just in case */
 }
 
+/* Each step circle */
 .stepbar div {
   width: 36px;
   height: 36px;
@@ -133,19 +136,28 @@ button.continue-btn:hover {
   border-radius: 50%;
   color: #fff;
   font-weight: bold;
+  font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.3s;
+  cursor: default;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.stepbar div:hover {
+  transform: scale(1.05);
 }
 
 .stepbar .active {
   background-color: #7649e0;
 }
 
-/* SCROLLBAR HIDE */
+/* Optional: Hide Scrollbar for Cleaner Look */
 body::-webkit-scrollbar {
   display: none;
+}
+body {
+  overflow-x: hidden; /* ✅ Prevent side-scrolling issues */
 }
 
 /* ----------------------------------
