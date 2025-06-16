@@ -1,93 +1,48 @@
-/* login.css */
 body {
-  margin: 0;
   font-family: 'Segoe UI', sans-serif;
-  background: #1f2235;
-  color: #f1f1f1;
+  background-color: #1f1f1f;
+  color: white;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
+  margin: 0;
 }
 
 .login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-}
-
-.login-box {
-  background: #2b2f4a;
-  padding: 40px 30px;
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  background-color: #2d2d2d;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.4);
+  width: 300px;
   text-align: center;
+}
+
+.login-container input {
   width: 100%;
-  max-width: 400px;
-}
-
-h2 {
-  margin-bottom: 10px;
-  color: #ffffff;
-}
-
-.subtitle {
-  font-size: 0.9rem;
-  color: #cccccc;
-  margin-bottom: 30px;
-}
-
-label {
-  display: block;
-  margin: 10px 0 5px;
-  text-align: left;
-  font-size: 0.9rem;
-}
-
-input[type='tel'] {
-  width: 100%;
-  padding: 12px;
+  padding: 10px;
+  margin: 12px 0;
   border: none;
   border-radius: 8px;
-  margin-bottom: 20px;
-  background: #3a3f63;
+  background-color: #444;
   color: white;
-  font-size: 1rem;
 }
 
-input[type='tel']::placeholder {
-  color: #aaa;
-}
-
-button {
-  width: 100%;
-  padding: 12px;
+.login-container button {
+  padding: 10px 20px;
+  background-color: #5f27cd;
   border: none;
-  background: #5f27cd;
-  color: white;
   border-radius: 8px;
-  font-size: 1rem;
+  color: white;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: background 0.3s;
 }
 
-button:hover {
-  background: #7b39f0;
+.login-container button:hover {
+  background-color: #7846dd;
 }
 
-.divider {
+hr {
   margin: 20px 0;
-  font-size: 0.8rem;
-  color: #777;
-}
-
-.guest-link {
-  color: #5f27cd;
-  text-decoration: none;
-  font-weight: bold;
-}
-
-.guest-link:hover {
-  text-decoration: underline;
+  border-color: #555;
 }
