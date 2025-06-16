@@ -3,36 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Symptoms - CareConnect</title>
+  <title>CareConnect - Symptom Entry</title>
   <link rel="stylesheet" href="/static/css/symptoms.css">
-  <script src="/static/js/symptoms.js" defer></script>
 </head>
 <body>
-  <div class="wrapper">
-    <div class="steps-bar">
-      <div class="step active">1</div>
-      <div class="step">2</div>
-      <div class="step">3</div>
-      <div class="step">4</div>
-      <div class="step">5</div>
-      <div class="step">6</div>
-      <div class="step">7</div>
+  <div class="container">
+    <div class="step-bar">
+      <ul>
+        <li class="active">1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+        <li>5</li>
+        <li>6</li>
+        <li>7</li>
+      </ul>
     </div>
 
-    <div class="form-container">
+    <div class="form-box">
       <h2>Describe Your Symptoms</h2>
-      <form action="/aadhaar" method="post" enctype="multipart/form-data">
-        <textarea name="symptoms" placeholder="Describe your symptoms in detail..." required></textarea>
+      <form action="/aadhaar" method="POST" enctype="multipart/form-data">
+        <label for="symptoms">Enter your symptoms:</label>
+        <textarea name="symptoms" id="symptoms" placeholder="e.g. Fever, cough, fatigue..." required></textarea>
 
-        <label for="severity">Severity Level</label>
+        <label for="severity">How severe is it?</label>
         <div class="slider-container">
-          <input type="range" min="0" max="10" value="5" id="severity" name="severity" onchange="updateSeverity(this.value)">
-          <span id="severity-value">5</span>
+          <input type="range" id="severity" name="severity" min="0" max="10" value="5">
+          <span id="severity-value">5</span>/10
         </div>
 
-        <button type="submit">Next</button>
+        <button type="submit">Continue</button>
       </form>
     </div>
   </div>
+
+  <script src="/static/js/symptoms.js"></script>
 </body>
 </html>
