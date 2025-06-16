@@ -1,50 +1,51 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const severitySlider = document.getElementById("severity");
-  const severityValue = document.getElementById("severity-value");
-  const symptomsForm = document.getElementById("symptoms-form");
-  const symptomsInput = document.getElementById("symptoms");
+document.addEventListener('DOMContentLoaded', function () {
+  const severitySlider = document.getElementById('severity');
+  const severityValue = document.getElementById('severity-value');
+  const symptomsForm = document.getElementById('symptoms-form');
+  const textarea = document.getElementById('symptoms');
 
-  // Initialize value display
-  severityValue.textContent = severitySlider.value;
-
-  // Update slider value dynamically
-  severitySlider.addEventListener("input", () => {
+  // Update severity value on slider move
+  severitySlider.addEventListener('input', function () {
     severityValue.textContent = severitySlider.value;
+    severityValue.style.color = getSeverityColor(severitySlider.value);
   });
 
-  // Enhance input with soft UI
-  symptomsInput.addEventListener("focus", () => {
-    symptomsInput.style.boxShadow = "0 0 8px rgba(95, 39, 205, 0.7)";
-  });
-  symptomsInput.addEventListener("blur", () => {
-    symptomsInput.style.boxShadow = "none";
+  // Change the slider thumb color based on value
+  severitySlider.addEventListener('input', function () {
+    const val = this.value;
+    this.style.background = `linear-gradient(to right, #5f27cd 0%, #5f27cd ${val * 10}%, #3a3a3a ${val * 10}%, #3a3a3a 100%)`;
   });
 
-  // Smooth scroll on submission
-  symptomsForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    symptomsInput.style.borderColor = "#5f27cd";
-    symptomsInput.style.transition = "border-color 0.5s ease";
-    setTimeout(() => {
-      symptomsForm.submit();
-    }, 300);
+  // Apply soft corners and focus effect on textarea
+  textarea.addEventListener('focus', function () {
+    this.style.boxShadow = '0 0 8px rgba(95, 39, 205, 0.8)';
+    this.style.transition = 'box-shadow 0.3s ease-in-out';
   });
 
-  // Add smooth entrance effect
-  const formContainer = document.querySelector(".form-container");
-  formContainer.style.opacity = 0;
-  formContainer.style.transform = "translateY(20px)";
-  setTimeout(() => {
-    formContainer.style.transition = "all 0.8s ease";
-    formContainer.style.opacity = 1;
-    formContainer.style.transform = "translateY(0)";
-  }, 100);
+  textarea.addEventListener('blur', function () {
+    this.style.boxShadow = 'none';
+  });
 
-  // Add slider style interaction
-  severitySlider.addEventListener("mousedown", () => {
-    severitySlider.style.cursor = "grabbing";
+  // Submit handler
+  symptomsForm.addEventListener('submit', function (e) {
+    const symptomText = textarea.value.trim();
+    if (symptomText.length < 10) {
+      alert("Please describe your symptoms with more detail.");
+      textarea.focus();
+      e.preventDefault();
+    } else {
+      console.log("Form submitted with severity:", severitySlider.value);
+    }
   });
-  severitySlider.addEventListener("mouseup", () => {
-    severitySlider.style.cursor = "grab";
-  });
+
+  // Utility: Severity color helper
+  function getSeverityColor(val) {
+    const score = parseInt(val);
+    if (score <= 3) return '#28a745'; // green
+    if (score <= 6) return '#ffc107'; // yellow
+    return '#dc3545'; // red
+  }
+
+  // Set initial slider background
+  severitySlider.dispatchEvent(new Event('input'));
 });
