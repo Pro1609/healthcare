@@ -1,11 +1,31 @@
-import re
 import os
+import re
 import requests
-from flask import Flask, render_template, request, redirect, url_for
+import random
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from dotenv import load_dotenv
 import openai
 
-# Aadhaar filter keywords
+# 🔹 Load environment variables
+load_dotenv()
+
+# 🔹 App setup
+app = Flask(__name__)
+UPLOAD_FOLDER = "static/uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# 🔹 Environment configs
+OCR_API_KEY = os.getenv("OCR_API_KEY")
+TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
+SMS_API_TOKEN = os.getenv("SMS_API_TOKEN")
+DEVICE_ID_1 = os.getenv("SMS_DEVICE_ID_1")  # for 7852910701
+DEVICE_ID_2 = os.getenv("SMS_DEVICE_ID_2")  # for 7848919383
+
+# 🔹 OpenAI client config for Together AI
+openai.api_key = TOGETHER_API_KEY
+openai.base_url = "https://api.together.xyz/v1"
+
+# 🔹 Aadhaar filter
 with open("aadhaar_filter_keywords.txt", "r") as f:
     unwanted = [line.strip().lower() for line in f]
 
@@ -13,36 +33,66 @@ def clean_ocr_text(text):
     lines = text.split("\n")
     return "\n".join(line for line in lines if all(word not in line.lower() for word in unwanted))
 
-# Setup
-load_dotenv()
-app = Flask(__name__)
-UPLOAD_FOLDER = "static/uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# 🔹 Temporary OTP store
+otp_store = {}
 
-OCR_API_KEY = os.getenv("OCR_API_KEY")
-TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
+# ─────────────────────────────────────────────
+# ✅ ROUTES
+# ─────────────────────────────────────────────
 
-# Setup OpenAI client for Together AI
-openai.api_key = TOGETHER_API_KEY
-openai.base_url = "https://api.together.xyz/v1"
-
-@app.route('/home')
-def homepage():
-    return render_template("home.html")
-    
 @app.route('/')
+@app.route('/home')
 def home():
-    return render_template('home.html')
-
+    return render_template("home.html")
 
 @app.route('/login')
 def login():
-    return render_template('login.html')
-
+    return render_template("login.html")
 
 @app.route('/symptoms')
 def symptoms():
     return render_template("symptoms.html")
+
+# ─────────────────────────────────────────────
+# ✅ SEND OTP with fallback
+# ─────────────────────────────────────────────
+@app.route('/send-otp', methods=['POST'])
+def send_otp():
+    data = request.get_json()
+    phone = data.get("phone")
+    otp = str(random.randint(100000, 999999))
+    otp_store[phone] = otp
+
+    devices = [DEVICE_ID_1, DEVICE_ID_2]
+    sent = False
+
+    for device_id in devices:
+        payload = [{
+            "phone_number": phone,
+            "message": f"Your OTP is: {otp}",
+            "device_id": device_id
+        }]
+        headers = {"Authorization": f"Bearer {SMS_API_TOKEN}"}
+        response = requests.post("https://smsgateway.me/api/v4/message/send", json=payload, headers=headers)
+
+        if response.status_code == 200:
+            sent = True
+            break
+
+    return jsonify({"success": sent})
+
+# ─────────────────────────────────────────────
+# ✅ VERIFY OTP
+# ─────────────────────────────────────────────
+@app.route('/verify-otp', methods=['POST'])
+def verify_otp():
+    data = request.get_json()
+    phone = data.get("phone")
+    code = data.get("otp")
+    if otp_store.get(phone) == code:
+        return jsonify({"success": True})
+    return jsonify({"success": False})
+
 
 @app.route('/aadhaar', methods=['POST'])
 def aadhaar():
