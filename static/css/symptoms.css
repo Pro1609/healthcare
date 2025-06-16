@@ -1,208 +1,177 @@
-/* Global Reset and Dark Theme */
-* {
-  box-sizing: border-box;
+/* Reset and Base */
+body, html {
   margin: 0;
   padding: 0;
-}
-
-html, body {
-  width: 100%;
-  min-height: 100vh;
-  background-color: #1c1c1c;
-  color: #ffffff;
   font-family: 'Segoe UI', sans-serif;
-  overflow-x: hidden;
+  background-color: #121212;
+  color: white;
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
-/* Main container */
 .container {
   display: flex;
   flex-direction: row;
-  padding: 40px;
   justify-content: center;
   align-items: flex-start;
   min-height: 100vh;
-  max-width: 100vw;
-  overflow-x: hidden;
+  padding: 40px;
+  box-sizing: border-box;
 }
 
-/* Symptoms box */
-.symptoms-container {
-  background-color: #2e2e2e;
-  padding: 30px;
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-  width: 100%;
-  max-width: 600px;
-}
-
-/* Header text */
-.symptoms-container h2 {
-  font-size: 24px;
-  margin-bottom: 20px;
-  color: #ffffff;
-}
-
-.symptoms-container label {
-  font-weight: 600;
-  font-size: 14px;
-  color: #cccccc;
-}
-
-/* Input area */
-textarea {
-  width: 100%;
-  height: 120px;
-  margin-top: 8px;
-  margin-bottom: 24px;
-  border: none;
-  border-radius: 12px;
-  padding: 12px;
-  font-size: 16px;
-  background-color: #3c3c3c;
-  color: #ffffff;
-  resize: none;
-}
-
-/* Severity Section */
-.severity-section {
-  margin-bottom: 24px;
-}
-
-.severity-label {
-  font-size: 15px;
-  margin-bottom: 8px;
-  color: #dddddd;
-}
-
-input[type="range"] {
-  width: 100%;
-  height: 18px;
-  border-radius: 8px;
-  -webkit-appearance: none;
-  background: #4b4b4b;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  height: 20px;
-  width: 20px;
-  border-radius: 50%;
-  background: #b37df2;
-  cursor: pointer;
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
-}
-
-/* Continue Button */
-button.continue-btn {
-  width: 100%;
-  padding: 14px;
-  font-size: 16px;
-  font-weight: 600;
-  background-color: #7649e0;
-  border: none;
-  color: #ffffff;
-  border-radius: 10px;
-  transition: background 0.3s ease;
-  cursor: pointer;
-}
-
-button.continue-btn:hover {
-  background-color: #9c6aff;
-}
-
-/* Step Bar */
+/* Stepbar */
 .stepbar {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  position: fixed;
-  right: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  padding: 10px;
-  background-color: #282828;
-  border-radius: 12px;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.05);
-  z-index: 1000; /* ✅ Ensure it stays above other content */
-  list-style: none; /* ✅ Just in case */
+  gap: 10px;
+  background-color: #1e1e1e;
+  padding: 12px;
+  border-radius: 12px 0 0 12px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
 }
 
-/* Each step circle */
 .stepbar div {
-  width: 36px;
-  height: 36px;
-  background-color: #444;
+  width: 32px;
+  height: 32px;
+  background-color: #333;
+  color: #aaa;
   border-radius: 50%;
-  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-weight: bold;
   font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: default;
-  transition: background 0.3s ease, transform 0.2s ease;
-}
-
-.stepbar div:hover {
-  transform: scale(1.05);
 }
 
 .stepbar .active {
   background-color: #7649e0;
+  color: white;
+  box-shadow: 0 0 8px #7649e0;
 }
 
-/* Optional: Hide Scrollbar for Cleaner Look */
-body::-webkit-scrollbar {
-  display: none;
-}
-body {
-  overflow-x: hidden; /* ✅ Prevent side-scrolling issues */
+/* Form container */
+.symptoms-container {
+  background-color: #1f1f1f;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  max-width: 600px;
+  width: 100%;
+  margin-right: 60px;
 }
 
-/* ----------------------------------
-   Responsive Design: Mobile First
------------------------------------ */
-@media screen and (max-width: 600px) {
+h2 {
+  margin-top: 0;
+  font-size: 26px;
+  color: #f0f0f0;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #ddd;
+}
+
+/* Textarea */
+textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  font-size: 16px;
+  background-color: #2c2c2c;
+  border: none;
+  border-radius: 12px;
+  color: #eee;
+  resize: none;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+}
+
+/* Severity bar */
+.severity-bar {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+input[type="range"] {
+  flex-grow: 1;
+  appearance: none;
+  height: 8px;
+  background: #333;
+  border-radius: 5px;
+  outline: none;
+  transition: background 0.3s;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #c084fc;
+  cursor: pointer;
+  box-shadow: 0 0 4px #c084fc;
+}
+
+/* Continue Button */
+button.submit-btn {
+  background-color: #7649e0;
+  border: none;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 12px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.3s ease;
+}
+
+button.submit-btn:hover {
+  background-color: #9f6dfb;
+}
+
+/* Mobile Styles */
+@media (max-width: 600px) {
   .container {
     flex-direction: column;
+    align-items: center;
     padding: 20px;
   }
 
   .symptoms-container {
+    width: 100%;
     padding: 20px;
-    width: 95vw;
-    margin: 0 auto;
-    border-radius: 14px;
+    margin: 80px 0 0 0;
+    border-radius: 16px;
   }
 
-  textarea {
-    height: 100px;
-    font-size: 15px;
+  textarea,
+  input[type="range"],
+  button.submit-btn {
+    width: 100%;
   }
 
   .stepbar {
     flex-direction: row;
-    position: fixed;
-    bottom: 10px;
     top: auto;
+    bottom: 20px;
     right: 50%;
     transform: translateX(50%);
-    width: auto;
-    gap: 8px;
-    padding: 8px 10px;
-    border-radius: 10px;
-    background-color: #2c2c2c;
-    z-index: 999;
+    padding: 8px 16px;
+    border-radius: 16px;
+    gap: 12px;
   }
 
   .stepbar div {
     width: 28px;
     height: 28px;
-    font-size: 13px;
-  }
-
-  input[type="range"] {
-    height: 24px;
+    font-size: 14px;
   }
 }
