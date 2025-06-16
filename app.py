@@ -28,7 +28,12 @@ openai.base_url = "https://api.together.xyz/v1"
 
 @app.route('/')
 def home():
-    return redirect(url_for('symptoms'))
+    return redirect(url_for('login'))
+
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
 
 @app.route('/symptoms')
 def symptoms():
