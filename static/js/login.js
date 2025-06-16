@@ -7,16 +7,18 @@ const firebaseConfig = {
   appId: "1:957059014720:web:xyz"
 };
 
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
+// reCAPTCHA Setup
 window.onload = () => {
   window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
     'size': 'normal',
-    'callback': function(response) {
-      console.log("reCAPTCHA solved")
+    'callback': (response) => {
+      console.log("reCAPTCHA solved ✅");
     },
-    'expired-callback': function() {
-      alert("reCAPTCHA expired. Please solve again.");
+    'expired-callback': () => {
+      alert("reCAPTCHA expired, please refresh and try again.");
     }
   });
   recaptchaVerifier.render();
@@ -24,33 +26,37 @@ window.onload = () => {
 
 let confirmationResult;
 
+// Send OTP
 function sendOTP() {
-  const phoneNumber = document.getElementById('phone').value;
+  const phone = document.getElementById("phone").value;
   const appVerifier = window.recaptchaVerifier;
 
-  firebase.auth().signInWithPhoneNumber(phoneNumber, appVerifier)
-    .then(result => {
+  firebase.auth().signInWithPhoneNumber(phone, appVerifier)
+    .then((result) => {
       confirmationResult = result;
       alert("OTP Sent Successfully!");
     })
-    .catch(error => {
-      console.error("OTP Error:", error);
-      alert("Failed to send OTP. Please try again.");
+    .catch((error) => {
+      console.error(error);
+      alert("OTP sending failed. Make sure your number is valid.");
     });
 }
 
+// Verify OTP
 function verifyOTP() {
-  const code = document.getElementById('otp').value;
-  confirmationResult.confirm(code).then(result => {
+  const otp = document.getElementById("otp").value;
+
+  confirmationResult.confirm(otp).then((result) => {
     const user = result.user;
-    localStorage.setItem("user", JSON.stringify(user.phoneNumber));
+    localStorage.setItem("user", user.phoneNumber);
     window.location.href = "/symptoms";
-  }).catch(error => {
-    console.error("OTP Verification Error:", error);
-    alert("Invalid OTP. Please try again.");
+  }).catch((error) => {
+    console.error(error);
+    alert("Invalid OTP. Try again.");
   });
 }
 
+// Guest Access
 function continueAsGuest() {
   localStorage.setItem("user", "guest");
   window.location.href = "/symptoms";
