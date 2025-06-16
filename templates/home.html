@@ -1,20 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>AI Medical Assistant</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Health Assist - Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
 </head>
 <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-logo">HealthAssist</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/login">Login</a>
+            <a href="#features">Features</a>
+        </div>
+    </nav>
 
-  <header class="hero">
-    <div class="overlay">
-      <h1>Your Virtual Health Assistant</h1>
-      <p>AI-powered symptom analysis and consultation to improve rural and urban patient care.</p>
-      <a href="/login" class="btn-start">Get Started</a>
-    </div>
-  </header>
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>Your Virtual Health Assistant</h1>
+            <p>AI-powered symptom analysis & consultation for rural and urban care</p>
+            <a href="/login" class="btn">Get Started</a>
+        </div>
+    </header>
 
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <h2>What We Offer</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3>Voice-Based Input</h3>
+                <p>Multilingual voice recognition to simplify reporting symptoms.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Aadhaar Integration</h3>
+                <p>Fast OCR for quick patient ID using Aadhaar card photos.</p>
+            </div>
+            <div class="feature-card">
+                <h3>SOAP Note Generator</h3>
+                <p>Auto-generates medical notes for better documentation.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Nearby Hospitals</h3>
+                <p>Suggests hospitals near the patient with distance mapping.</p>
+            </div>
+        </div>
+    </section>
 </body>
 </html>
