@@ -1,61 +1,119 @@
+/* General Page Layout */
 body {
   margin: 0;
+  padding: 0;
   font-family: 'Segoe UI', sans-serif;
-  background-color: #2b2b2b;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: linear-gradient(145deg, #1a1a1d, #292932);
+  color: #ffffff;
   height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.login-container {
-  background-color: #3a3a3a;
+/* Container */
+.login-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* Card Design */
+.login-card {
+  background-color: #2e2e38;
   padding: 40px;
-  border-radius: 15px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  border-radius: 16px;
   width: 90%;
   max-width: 400px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   text-align: center;
 }
 
+/* Header */
+.login-card h2 {
+  margin-bottom: 10px;
+  font-size: 26px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+/* Subtext */
+.subtext {
+  font-size: 14px;
+  color: #cccccc;
+  margin-bottom: 25px;
+}
+
+/* Input Fields */
 input[type="tel"],
 input[type="text"] {
   width: 100%;
   padding: 12px;
   margin: 10px 0;
-  border: none;
-  border-radius: 8px;
+  background: #1f1f24;
+  border: 1px solid #444;
+  border-radius: 10px;
   font-size: 16px;
+  color: #fff;
+  outline: none;
+  transition: border 0.3s ease;
 }
 
+input:focus {
+  border-color: #8c52ff;
+}
+
+/* Buttons */
 button {
-  background-color: #5f27cd;
-  color: white;
+  background-color: #8c52ff;
   border: none;
   padding: 12px;
   width: 100%;
-  margin-top: 10px;
+  color: #fff;
   font-size: 16px;
-  border-radius: 8px;
+  border-radius: 10px;
+  margin-top: 10px;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: background 0.3s ease;
 }
 
 button:hover {
-  background-color: #7649e0;
+  background-color: #a974ff;
 }
 
+/* Separator */
 .separator {
   margin: 20px 0;
-  font-weight: bold;
-  opacity: 0.6;
+  color: #aaa;
+  font-size: 14px;
 }
 
+/* Guest Button Style */
 .guest-btn {
-  background-color: #4c4c4c;
+  background-color: #444;
 }
 
 .guest-btn:hover {
-  background-color: #6c6c6c;
+  background-color: #666;
+}
+
+/* reCAPTCHA styling (for dark mode override if needed) */
+#g-recaptcha-response {
+  margin: 0 auto;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+  .login-card {
+    padding: 30px 20px;
+  }
+
+  .login-card h2 {
+    font-size: 22px;
+  }
+
+  button {
+    font-size: 15px;
+  }
 }
