@@ -1,0 +1,48 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.hero {
+  background: url('https://images.unsplash.com/photo-1588776814546-ec7e1451d1d4') no-repeat center center/cover;
+  height: 100vh;
+  position: relative;
+}
+
+.overlay {
+  background: rgba(0, 0, 0, 0.6);
+  height: 100%;
+  color: white;
+  text-align: center;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.overlay h1 {
+  font-size: 3em;
+  margin-bottom: 0.5em;
+}
+
+.overlay p {
+  font-size: 1.2em;
+  margin-bottom: 1.5em;
+  max-width: 600px;
+}
+
+.btn-start {
+  padding: 12px 30px;
+  background-color: #00b894;
+  color: white;
+  text-decoration: none;
+  font-size: 1.1em;
+  border-radius: 25px;
+  transition: background 0.3s;
+}
+
+.btn-start:hover {
+  background-color: #019875;
+}
