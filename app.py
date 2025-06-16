@@ -26,6 +26,10 @@ TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
 openai.api_key = TOGETHER_API_KEY
 openai.base_url = "https://api.together.xyz/v1"
 
+@app.route('/home')
+def homepage():
+    return render_template("home.html")
+    
 @app.route('/')
 def home():
     return render_template('home.html')
