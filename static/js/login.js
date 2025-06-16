@@ -4,62 +4,54 @@ const firebaseConfig = {
   projectId: "auth-3438b",
   storageBucket: "auth-3438b.appspot.com",
   messagingSenderId: "957059014720",
-  appId: "1:957059014720:web:xxxxxxxxxxxxx"
+  appId: "1:957059014720:web:xyz"
 };
 
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
 
 window.onload = () => {
   window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-    size: 'normal',
-    callback: () => {
-      console.log("reCAPTCHA verified");
+    'size': 'normal',
+    'callback': function(response) {
+      console.log("reCAPTCHA solved")
+    },
+    'expired-callback': function() {
+      alert("reCAPTCHA expired. Please solve again.");
     }
   });
   recaptchaVerifier.render();
 };
 
-function sendOTP() {
-  const phone = document.getElementById("phone").value;
-  if (!phone.startsWith("+91")) {
-    alert("Enter phone number in +91XXXXXXXXXX format.");
-    return;
-  }
+let confirmationResult;
 
-  auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
-    .then(confirmationResult => {
-      window.confirmationResult = confirmationResult;
-      document.querySelector(".otp-section").style.display = "block";
-      alert("OTP Sent!");
+function sendOTP() {
+  const phoneNumber = document.getElementById('phone').value;
+  const appVerifier = window.recaptchaVerifier;
+
+  firebase.auth().signInWithPhoneNumber(phoneNumber, appVerifier)
+    .then(result => {
+      confirmationResult = result;
+      alert("OTP Sent Successfully!");
     })
     .catch(error => {
-      console.error("SMS not sent", error);
-      alert("Failed to send OTP. Check console for details.");
+      console.error("OTP Error:", error);
+      alert("Failed to send OTP. Please try again.");
     });
 }
 
 function verifyOTP() {
-  const otp = document.getElementById("otp").value;
-  confirmationResult.confirm(otp)
-    .then(result => {
-      const user = result.user;
-      sessionStorage.setItem("phoneNumber", user.phoneNumber);
-      window.location.href = "/home"; // or wherever you want to go next
-    })
-    .catch(err => {
-      alert("Incorrect OTP!");
-      console.error(err);
-    });
+  const code = document.getElementById('otp').value;
+  confirmationResult.confirm(code).then(result => {
+    const user = result.user;
+    localStorage.setItem("user", JSON.stringify(user.phoneNumber));
+    window.location.href = "/symptoms";
+  }).catch(error => {
+    console.error("OTP Verification Error:", error);
+    alert("Invalid OTP. Please try again.");
+  });
 }
 
 function continueAsGuest() {
-  auth.signInAnonymously()
-    .then(() => {
-      sessionStorage.setItem("phoneNumber", "guest");
-      window.location.href = "/home";
-    })
-    .catch(error => {
-      console.error("Guest login failed", error);
-    });
+  localStorage.setItem("user", "guest");
+  window.location.href = "/symptoms";
 }
