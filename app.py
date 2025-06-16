@@ -2,28 +2,33 @@ import os
 import re
 import requests
 import random
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, session
 from dotenv import load_dotenv
 import openai
+from twilio.rest import Client
 
 # 🔹 Load environment variables
 load_dotenv()
 
 # 🔹 App setup
 app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "temporary-secret")
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # 🔹 Environment configs
 OCR_API_KEY = os.getenv("OCR_API_KEY")
 TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
-SMS_API_TOKEN = os.getenv("SMS_API_TOKEN")
-DEVICE_ID_1 = os.getenv("SMS_DEVICE_ID_1")  # for 7852910701
-DEVICE_ID_2 = os.getenv("SMS_DEVICE_ID_2")  # for 7848919383
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_VERIFY_SERVICE_SID = os.getenv("TWILIO_VERIFY_SERVICE_SID")
 
 # 🔹 OpenAI client config for Together AI
 openai.api_key = TOGETHER_API_KEY
 openai.base_url = "https://api.together.xyz/v1"
+
+# 🔹 Twilio client
+twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 # 🔹 Aadhaar filter
 with open("aadhaar_filter_keywords.txt", "r") as f:
@@ -32,9 +37,6 @@ with open("aadhaar_filter_keywords.txt", "r") as f:
 def clean_ocr_text(text):
     lines = text.split("\n")
     return "\n".join(line for line in lines if all(word not in line.lower() for word in unwanted))
-
-# 🔹 Temporary OTP store
-otp_store = {}
 
 # ─────────────────────────────────────────────
 # ✅ ROUTES
@@ -54,44 +56,48 @@ def symptoms():
     return render_template("symptoms.html")
 
 # ─────────────────────────────────────────────
-# ✅ SEND OTP with fallback
+# ✅ SEND OTP using Twilio Verify
 # ─────────────────────────────────────────────
 @app.route('/send-otp', methods=['POST'])
 def send_otp():
     data = request.get_json()
     phone = data.get("phone")
-    otp = str(random.randint(100000, 999999))
-    otp_store[phone] = otp
 
-    devices = [DEVICE_ID_1, DEVICE_ID_2]
-    sent = False
+    if not phone:
+        return jsonify({"success": False, "error": "Phone number missing"}), 400
 
-    for device_id in devices:
-        payload = [{
-            "phone_number": phone,
-            "message": f"Your OTP is: {otp}",
-            "device_id": device_id
-        }]
-        headers = {"Authorization": f"Bearer {SMS_API_TOKEN}"}
-        response = requests.post("https://smsgateway.me/api/v4/message/send", json=payload, headers=headers)
-
-        if response.status_code == 200:
-            sent = True
-            break
-
-    return jsonify({"success": sent})
+    try:
+        verification = twilio_client.verify.services(TWILIO_VERIFY_SERVICE_SID).verifications.create(
+            to=phone,
+            channel='sms'
+        )
+        return jsonify({"success": True, "message": "OTP sent"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 # ─────────────────────────────────────────────
-# ✅ VERIFY OTP
+# ✅ VERIFY OTP using Twilio
 # ─────────────────────────────────────────────
 @app.route('/verify-otp', methods=['POST'])
 def verify_otp():
     data = request.get_json()
     phone = data.get("phone")
     code = data.get("otp")
-    if otp_store.get(phone) == code:
-        return jsonify({"success": True})
-    return jsonify({"success": False})
+
+    try:
+        verification_check = twilio_client.verify.services(TWILIO_VERIFY_SERVICE_SID).verification_checks.create(
+            to=phone,
+            code=code
+        )
+
+        if verification_check.status == "approved":
+            session["user"] = phone
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False, "error": "Invalid OTP"})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route('/aadhaar', methods=['POST'])
