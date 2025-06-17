@@ -82,6 +82,35 @@ def send_otp():
         print("❌ Twilio OTP send error:", str(e))
         return jsonify({"success": False, "error": str(e)}), 500
 
+# ─────────────────────────────────────────────
+# ✅ VERIFY OTP using Twilio Verify
+# ─────────────────────────────────────────────
+@app.route('/verify-otp', methods=['POST'])
+def verify_otp():
+    data = request.get_json()
+    phone = data.get("phone")
+    code = data.get("otp")
+
+    print("📩 Verifying phone:", phone)
+    print("🔢 Received OTP:", code)
+
+    try:
+        verification_check = twilio_client.verify.services(TWILIO_VERIFY_SERVICE_SID).verification_checks.create(
+            to=phone,
+            code=code
+        )
+        print("🟢 Twilio verification status:", verification_check.status)
+
+        if verification_check.status == "approved":
+            session["user"] = phone
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False, "error": "Invalid or expired OTP."})
+    except Exception as e:
+        print("❌ OTP verification error:", str(e))
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 
 @app.route('/aadhaar', methods=['POST'])
 def aadhaar():
