@@ -66,6 +66,7 @@ def symptoms():
 def send_otp():
     data = request.get_json()
     phone = data.get("phone")
+    print("📩 Requested OTP for:", phone)
 
     if not phone:
         return jsonify({"success": False, "error": "Phone number missing"}), 400
@@ -75,32 +76,10 @@ def send_otp():
             to=phone,
             channel='sms'
         )
+        print("📤 Twilio response:", verification.status)
         return jsonify({"success": True, "message": "OTP sent"})
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-
-# ─────────────────────────────────────────────
-# ✅ VERIFY OTP using Twilio
-# ─────────────────────────────────────────────
-@app.route('/verify-otp', methods=['POST'])
-def verify_otp():
-    data = request.get_json()
-    phone = data.get("phone")
-    code = data.get("otp")
-
-    try:
-        verification_check = twilio_client.verify.services(TWILIO_VERIFY_SERVICE_SID).verification_checks.create(
-            to=phone,
-            code=code
-        )
-
-        if verification_check.status == "approved":
-            session["user"] = phone
-            return jsonify({"success": True})
-        else:
-            return jsonify({"success": False, "error": "Invalid OTP"})
-
-    except Exception as e:
+        print("❌ Twilio OTP send error:", str(e))
         return jsonify({"success": False, "error": str(e)}), 500
 
 
