@@ -1,10 +1,10 @@
-// ✅ Twilio-compatible phone format
+// ✅ Format number to Twilio-compatible E.164 format
 function formatPhoneNumber(phone) {
   phone = phone.trim().replace(/\s|-/g, '');
 
   if (phone.startsWith('+')) return phone;
   if (/^\d{10}$/.test(phone)) return `+91${phone}`;
-  return ''; // Invalid number
+  return '';
 }
 
 function sendOTP() {
@@ -12,7 +12,7 @@ function sendOTP() {
   const phone = formatPhoneNumber(rawPhone);
 
   if (!phone) {
-    alert("⚠️ Please enter a valid Indian phone number (10 digits or with +91).");
+    alert("⚠️ Enter a valid Indian phone number (10 digits or with +91).");
     return;
   }
 
@@ -25,14 +25,15 @@ function sendOTP() {
     .then(data => {
       if (data.success) {
         alert("✅ OTP sent successfully!");
-        localStorage.setItem("user", phone);  // Store phone number for session
+        localStorage.setItem("user", phone);
       } else {
-        alert("❌ Failed to send OTP: " + (data.error || "Unknown error"));
+        console.error("❌ Send OTP Error:", data.error);
+        alert("❌ Failed to send OTP:\n" + (data.error || "Unknown error"));
       }
     })
-    .catch(error => {
-      console.error("OTP send error:", error);
-      alert("⚠️ An error occurred while sending OTP.");
+    .catch(err => {
+      console.error("❌ Network error:", err);
+      alert("⚠️ Network error. Please try again.");
     });
 }
 
@@ -41,7 +42,7 @@ function verifyOTP() {
   const code = document.getElementById("otp").value.trim();
 
   if (!phone || !code) {
-    alert("⚠️ Please fill in both phone and OTP fields.");
+    alert("⚠️ Enter both phone number and OTP.");
     return;
   }
 
@@ -53,16 +54,17 @@ function verifyOTP() {
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        alert("✅ OTP Verified!");
+        alert("✅ OTP verified successfully!");
         localStorage.setItem("user", phone);
         window.location.href = "/symptoms";
       } else {
-        alert("❌ Invalid OTP. Please try again.");
+        console.error("❌ Verification Error:", data.error);
+        alert("❌ OTP verification failed:\n" + (data.error || "Try again"));
       }
     })
-    .catch(error => {
-      console.error("OTP verification error:", error);
-      alert("⚠️ Error verifying OTP. Try again.");
+    .catch(err => {
+      console.error("❌ Verification fetch error:", err);
+      alert("⚠️ Something went wrong during verification.");
     });
 }
 
