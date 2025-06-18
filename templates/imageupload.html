@@ -1,38 +1,35 @@
-<!-- imageupload.html -->
-<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Upload Images or Videos</title>
-  <link rel="stylesheet" href="/static/css/imageupload.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image/Video Upload - CareConnect</title>
+  <link rel="stylesheet" href="/static/css/imageupload.css">
+  <script src="/static/js/imageupload.js" defer></script>
 </head>
 <body>
   <div class="stepbar">
-    <div>1</div>
-    <div class="active">2</div>
-    <div>3</div>
-    <div>4</div>
-    <div>5</div>
+    <div class="step active">1</div>
+    <div class="step active">2</div>
+    <div class="step active">3</div>
+    <div class="step">4</div>
+    <div class="step">5</div>
+    <div class="step">6</div>
+    <div class="step">7</div>
   </div>
 
   <div class="upload-container">
-    <h2>Optional Upload</h2>
-    <p>If you have any images or videos related to your condition, please upload them. Otherwise, you may skip this step.</p>
-
-    <form action="/imageupload" method="POST" enctype="multipart/form-data">
+    <h2>Upload Images or Videos (optional)</h2>
+    <p>If you have any relevant images or videos, please upload them below. You can skip this step if not applicable.</p>
+    <form method="POST" enctype="multipart/form-data">
       <label for="image">Upload Image:</label>
-      <input type="file" id="image" name="image" accept="image/*">
+      <input type="file" name="image" id="image" accept="image/*">
 
       <label for="video">Upload Video:</label>
-      <input type="file" id="video" name="video" accept="video/*">
+      <input type="file" name="video" id="video" accept="video/*">
 
       <button type="submit">Continue</button>
     </form>
-
     <a href="/aadhaar" class="skip-link">Skip</a>
   </div>
-
-  <script src="/static/js/imageupload.js"></script>
 </body>
 </html>
