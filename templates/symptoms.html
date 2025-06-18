@@ -2,56 +2,38 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CareConnect - Symptom Entry</title>
-  <link rel="stylesheet" href="/static/css/symptoms.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upload Media</title>
+  <link rel="stylesheet" href="/static/css/imageupload.css" />
 </head>
 <body>
-  <div class="container">
-    
-    <!-- Vertical Stepbar -->
+  <div class="image-upload-container">
     <div class="stepbar">
-      <div class="active">1</div>
+      <div>1</div>
       <div>2</div>
-      <div>3</div>
+      <div class="active">3</div>
       <div>4</div>
       <div>5</div>
       <div>6</div>
       <div>7</div>
     </div>
 
-    <!-- Symptom Entry Form -->
-    <div class="symptoms-container">
-      <h2>Describe Your Symptoms</h2>
-      <form action="/aadhaar" method="POST" enctype="multipart/form-data">
-        
-        <label for="symptoms">Enter your symptoms:</label>
-        <textarea
-          id="symptoms"
-          name="symptoms"
-          placeholder="e.g. Fever, cough, fatigue..."
-          required
-        ></textarea>
-
-        <label for="severity">How severe is it?</label>
-        <div class="severity-bar">
-          <input
-            type="range"
-            id="severity"
-            name="severity"
-            min="0"
-            max="10"
-            value="5"
-          />
-          <span id="severity-value">5</span>/10
+    <div class="upload-area">
+      <h2>If you have any images or videos, please upload them</h2>
+      <form method="POST" enctype="multipart/form-data">
+        <div class="upload-box">
+          <label>Upload Image (optional)</label>
+          <input type="file" name="image" accept="image/*">
         </div>
 
-        <button type="submit" class="submit-btn">Continue</button>
+        <div class="upload-box">
+          <label>Upload Video (optional)</label>
+          <input type="file" name="video" accept="video/*">
+        </div>
+
+        <button type="submit">Continue</button>
       </form>
     </div>
-
   </div>
-
-  <script src="/static/js/symptoms.js"></script>
 </body>
 </html>
