@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Symptom Input</title>
+  <title>CareConnect - Symptom Entry</title>
   <link rel="stylesheet" href="/static/css/symptoms.css" />
 </head>
 <body>
-  <div class="symptoms-container">
+  <div class="container">
+
+    <!-- Stepbar -->
     <div class="stepbar">
       <div class="active">1</div>
       <div>2</div>
@@ -18,19 +20,32 @@
       <div>7</div>
     </div>
 
-    <div class="form-area">
-      <h2>Please describe your symptoms</h2>
-      <form method="POST">
-        <label for="symptoms">Symptoms:</label>
-        <textarea id="symptoms" name="symptoms" placeholder="e.g., headache after eating, mild nausea" rows="6"></textarea>
+    <!-- Symptom Entry Form -->
+    <div class="symptoms-container">
+      <h2>Describe Your Symptoms</h2>
+      <form id="symptoms-form" action="/symptoms" method="POST">
+        <label for="symptoms">Enter your symptoms:</label>
+        <textarea
+          id="symptoms"
+          name="symptoms"
+          placeholder="e.g. Fever, cough, fatigue..."
+          required
+        ></textarea>
 
-        <label for="severity">Severity:</label>
+        <label for="severity">How severe is it?</label>
         <div class="severity-bar">
-          <input type="range" name="severity" id="severity" min="0" max="10" value="5">
-          <span id="severity-value">5</span> / 10
+          <input
+            type="range"
+            id="severity"
+            name="severity"
+            min="0"
+            max="10"
+            value="5"
+          />
+          <span id="severity-value">5</span>/10
         </div>
 
-        <button type="submit">Continue</button>
+        <button type="submit" class="submit-btn">Continue</button>
       </form>
     </div>
   </div>
