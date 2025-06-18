@@ -1,35 +1,42 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Image/Video Upload - CareConnect</title>
-  <link rel="stylesheet" href="/static/css/imageupload.css">
-  <script src="/static/js/imageupload.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upload Media</title>
+  <link rel="stylesheet" href="/static/css/imageupload.css" />
 </head>
 <body>
-  <div class="stepbar">
-    <div class="step active">1</div>
-    <div class="step active">2</div>
-    <div class="step active">3</div>
-    <div class="step">4</div>
-    <div class="step">5</div>
-    <div class="step">6</div>
-    <div class="step">7</div>
+  <div class="image-upload-container">
+    <div class="stepbar">
+      <div>1</div>
+      <div>2</div>
+      <div class="active">3</div>
+      <div>4</div>
+      <div>5</div>
+      <div>6</div>
+      <div>7</div>
+    </div>
+
+    <div class="upload-area">
+      <h2>If you have any images or videos please upload or skip</h2>
+      <form method="POST" enctype="multipart/form-data">
+        <div class="upload-box">
+          <label>Upload Image (if any)</label>
+          <input type="file" name="image" accept="image/*">
+        </div>
+
+        <div class="upload-box">
+          <label>Upload Video (if any)</label>
+          <input type="file" name="video" accept="video/*">
+        </div>
+
+        <button type="submit">Continue</button>
+        <button type="submit" name="skip">Skip</button>
+      </form>
+    </div>
   </div>
-
-  <div class="upload-container">
-    <h2>Upload Images or Videos (optional)</h2>
-    <p>If you have any relevant images or videos, please upload them below. You can skip this step if not applicable.</p>
-    <form method="POST" enctype="multipart/form-data">
-      <label for="image">Upload Image:</label>
-      <input type="file" name="image" id="image" accept="image/*">
-
-      <label for="video">Upload Video:</label>
-      <input type="file" name="video" id="video" accept="video/*">
-
-      <button type="submit">Continue</button>
-    </form>
-    <a href="/aadhaar" class="skip-link">Skip</a>
-  </div>
+  <script src="/static/js/imageupload.js"></script>
 </body>
 </html>
+
