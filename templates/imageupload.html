@@ -1,29 +1,38 @@
+<!-- imageupload.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Upload Images or Videos</title>
   <link rel="stylesheet" href="/static/css/imageupload.css" />
 </head>
 <body>
-  <div class="upload-container">
-    <h2>📷 Upload Media</h2>
-    <p>If you have any images or videos related to your symptoms, please upload them here. Otherwise, you can skip this step.</p>
-
-    <form action="/imageupload" method="post" enctype="multipart/form-data">
-      <label>Upload Image:
-        <input type="file" name="image" accept="image/*">
-      </label>
-      <label>Upload Video:
-        <input type="file" name="video" accept="video/*">
-      </label>
-      <div class="buttons">
-        <button type="submit">Continue</button>
-        <a href="/aadhaar" class="skip-btn">Skip</a>
-      </div>
-    </form>
+  <div class="stepbar">
+    <div>1</div>
+    <div class="active">2</div>
+    <div>3</div>
+    <div>4</div>
+    <div>5</div>
   </div>
+
+  <div class="upload-container">
+    <h2>Optional Upload</h2>
+    <p>If you have any images or videos related to your condition, please upload them. Otherwise, you may skip this step.</p>
+
+    <form action="/imageupload" method="POST" enctype="multipart/form-data">
+      <label for="image">Upload Image:</label>
+      <input type="file" id="image" name="image" accept="image/*">
+
+      <label for="video">Upload Video:</label>
+      <input type="file" id="video" name="video" accept="video/*">
+
+      <button type="submit">Continue</button>
+    </form>
+
+    <a href="/aadhaar" class="skip-link">Skip</a>
+  </div>
+
   <script src="/static/js/imageupload.js"></script>
 </body>
 </html>
