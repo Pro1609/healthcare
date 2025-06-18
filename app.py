@@ -7,34 +7,27 @@ from dotenv import load_dotenv
 import openai
 from twilio.rest import Client
 
-# 🔹 Load environment variables
+# Load env variables
 load_dotenv()
 
-# 🔹 App setup
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "temporary-secret")
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# 🔹 Environment configs
 OCR_API_KEY = os.getenv("OCR_API_KEY")
 TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_VERIFY_SERVICE_SID = os.getenv("TWILIO_VERIFY_SERVICE_SID")
 
-print("🔐 TWILIO_ACCOUNT_SID:", TWILIO_ACCOUNT_SID)
-print("🔐 TWILIO_AUTH_TOKEN:", TWILIO_AUTH_TOKEN)
-print("🔐 TWILIO_VERIFY_SERVICE_SID:", TWILIO_VERIFY_SERVICE_SID)
-
-# 🔹 OpenAI client config for Together AI
 openai.api_key = TOGETHER_API_KEY
 openai.base_url = "https://api.together.xyz/v1"
 
-# 🔹 Twilio client
+# Twilio client
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
-# 🔹 Aadhaar filter
+# Aadhaar filter
 with open("aadhaar_filter_keywords.txt", "r") as f:
     unwanted = [line.strip().lower() for line in f]
 
@@ -42,10 +35,7 @@ def clean_ocr_text(text):
     lines = text.split("\n")
     return "\n".join(line for line in lines if all(word not in line.lower() for word in unwanted))
 
-# ─────────────────────────────────────────────
-# ✅ ROUTES
-# ─────────────────────────────────────────────
-
+# Routes
 @app.route('/')
 @app.route('/home')
 def home():
@@ -55,63 +45,41 @@ def home():
 def login():
     return render_template("login.html")
 
-@app.route('/symptoms')
+@app.route('/symptoms', methods=['GET', 'POST'])
 def symptoms():
+    if request.method == 'POST':
+        symptoms_text = request.form.get("symptoms")
+        severity = request.form.get("severity")
+
+        if not symptoms_text:
+            return "<h2>Please enter your symptoms.</h2><a href='/symptoms'>🡸 Try Again</a>"
+
+        session['symptoms'] = symptoms_text
+        session['severity'] = severity
+        return redirect(url_for('image_upload'))
+
     return render_template("symptoms.html")
 
-# ─────────────────────────────────────────────
-# ✅ SEND OTP using Twilio Verify
-# ─────────────────────────────────────────────
-@app.route('/send-otp', methods=['POST'])
-def send_otp():
-    data = request.get_json()
-    phone = data.get("phone")
-    print("📩 Requested OTP for:", phone)
+@app.route('/imageupload', methods=['GET', 'POST'])
+def image_upload():
+    if request.method == 'POST':
+        image_file = request.files.get('image')
+        video_file = request.files.get('video')
 
-    if not phone:
-        return jsonify({"success": False, "error": "Phone number missing"}), 400
+        saved_files = []
 
-    try:
-        verification = twilio_client.verify.services(TWILIO_VERIFY_SERVICE_SID).verifications.create(
-            to=phone,
-            channel='sms'
-        )
-        print("📤 Twilio response:", verification.status)
-        return jsonify({"success": True, "message": "OTP sent"})
-    except Exception as e:
-        print("❌ Twilio OTP send error:", str(e))
-        return jsonify({"success": False, "error": str(e)}), 500
+        for file in [image_file, video_file]:
+            if file and file.filename:
+                filename = file.filename.replace(" ", "_")
+                filepath = os.path.join(UPLOAD_FOLDER, filename)
+                file.save(filepath)
+                saved_files.append(filepath)
 
-# ─────────────────────────────────────────────
-# ✅ VERIFY OTP using Twilio Verify
-# ─────────────────────────────────────────────
-@app.route('/verify-otp', methods=['POST'])
-def verify_otp():
-    data = request.get_json()
-    phone = data.get("phone")
-    code = data.get("otp")
+        print("✅ Uploaded files:", saved_files)
 
-    print("📩 Verifying phone:", phone)
-    print("🔢 Received OTP:", code)
+        return redirect(url_for("aadhaar"))
 
-    try:
-        verification_check = twilio_client.verify.services(TWILIO_VERIFY_SERVICE_SID).verification_checks.create(
-            to=phone,
-            code=code
-        )
-        print("🟢 Twilio verification status:", verification_check.status)
-
-        if verification_check.status == "approved":
-            session["user"] = phone
-            return jsonify({"success": True})
-        else:
-            return jsonify({"success": False, "error": "Invalid or expired OTP."})
-    except Exception as e:
-        print("❌ OTP verification error:", str(e))
-        return jsonify({"success": False, "error": str(e)}), 500
-
-
-
+    return render_template("imageupload.html")
 @app.route('/aadhaar', methods=['POST'])
 def aadhaar():
     try:
