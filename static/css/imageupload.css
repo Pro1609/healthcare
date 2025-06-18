@@ -1,78 +1,116 @@
+--- imageupload.css ---
 body {
-  background-color: #1d1f21;
-  color: #ffffff;
-  font-family: 'Segoe UI', sans-serif;
   margin: 0;
   padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #1e1e1e;
+  color: #ffffff;
+  overflow-x: hidden;
 }
 
-.upload-container {
-  max-width: 450px;
-  margin: 40px auto;
-  background-color: #2b2d31;
-  padding: 30px;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+.image-upload-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.stepbar {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  background-color: #2c2c2c;
+  border-radius: 12px 0 0 12px;
+  padding: 10px;
+  gap: 15px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+.stepbar div {
+  width: 30px;
+  height: 30px;
+  background-color: #555;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.stepbar div.active {
+  background-color: #5f27cd;
+  box-shadow: 0 0 10px #5f27cd;
+}
+
+.upload-area {
+  flex: 1;
+  padding: 40px;
+  max-width: 600px;
+  margin: auto;
   text-align: center;
 }
 
-h2 {
-  margin-bottom: 15px;
+.upload-area h2 {
+  margin-bottom: 20px;
 }
 
-p {
-  font-size: 15px;
-  margin-bottom: 25px;
-  color: #ccc;
+.upload-box {
+  background-color: #2a2a2a;
+  padding: 40px;
+  border: 2px dashed #888;
+  border-radius: 15px;
+  margin-bottom: 30px;
+  transition: all 0.3s ease;
 }
 
-label {
+.upload-box:hover {
+  transform: scale(1.03);
+  background-color: #3a3a3a;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
+}
+
+.upload-box input {
   display: block;
-  text-align: left;
-  margin-bottom: 15px;
-  font-size: 14px;
-}
-
-input[type="file"] {
-  display: block;
-  width: 100%;
-  padding: 8px;
-  margin-top: 6px;
-  background-color: #3a3d42;
-  border: 1px solid #555;
-  border-radius: 8px;
-  color: white;
-}
-
-.buttons {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-}
-
-button, .skip-btn {
-  padding: 10px 16px;
-  border-radius: 8px;
-  border: none;
-  text-decoration: none;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
+  margin: 15px auto 0;
+  color: #ffffff;
 }
 
 button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
   background-color: #5f27cd;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  margin: 10px;
+  transition: all 0.3s ease;
 }
 
 button:hover {
   background-color: #7649e0;
+  box-shadow: 0 0 10px rgba(95, 39, 205, 0.4);
 }
 
-.skip-btn {
-  background-color: #444;
-  line-height: 35px;
-}
-
-.skip-btn:hover {
-  background-color: #666;
+@media screen and (max-width: 600px) {
+  .image-upload-container {
+    flex-direction: column;
+    padding: 20px;
+  }
+  .stepbar {
+    flex-direction: row;
+    bottom: 0;
+    right: 50%;
+    transform: translateX(50%);
+    padding: 10px;
+    border-radius: 12px 12px 0 0;
+  }
+  .stepbar div {
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
+  }
 }
