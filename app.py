@@ -56,15 +56,13 @@ def symptoms():
         if not symptoms_text:
             return "<h2>Please enter your symptoms.</h2><a href='/symptoms'>🡸 Try Again</a>"
 
-        # Store in session for use later
         session['symptoms'] = symptoms_text
         session['severity'] = severity
 
-        # ✅ Redirect to /imageupload (not aadhaar)
+        # 🔁 Redirect to imageupload (correct step)
         return redirect(url_for('image_upload'))
 
     return render_template("symptoms.html")
-
 
 @app.route('/imageupload', methods=['GET', 'POST'])
 def image_upload():
@@ -83,7 +81,7 @@ def image_upload():
 
         print("✅ Uploaded media files:", uploaded_files)
 
-        # ✅ Redirect to /aadhaar after media upload (not before)
+        # ⏩ Continue to Aadhaar step
         return redirect(url_for("aadhaar"))
 
     return render_template("imageupload.html")
