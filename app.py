@@ -56,10 +56,11 @@ def symptoms():
         if not symptoms_text:
             return "<h2>Please enter your symptoms.</h2><a href='/symptoms'>🡸 Try Again</a>"
 
-        # Store data in session
+        # Store in session for use later
         session['symptoms'] = symptoms_text
         session['severity'] = severity
 
+        # ✅ Redirect to /imageupload (not aadhaar)
         return redirect(url_for('image_upload'))
 
     return render_template("symptoms.html")
@@ -82,7 +83,7 @@ def image_upload():
 
         print("✅ Uploaded media files:", uploaded_files)
 
-        # Proceed to Aadhaar page regardless of uploads
+        # ✅ Redirect to /aadhaar after media upload (not before)
         return redirect(url_for("aadhaar"))
 
     return render_template("imageupload.html")
