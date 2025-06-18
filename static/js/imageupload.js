@@ -1,9 +1,13 @@
-console.log("🖼️ Image/Video upload page loaded.");
+window.onload = function () {
+  const uploadBox = document.querySelectorAll('.upload-box');
 
-document.querySelectorAll('input[type="file"]').forEach(input => {
-  input.addEventListener('change', () => {
-    if (input.files.length > 0) {
-      console.log(`📁 File selected: ${input.files[0].name}`);
-    }
+  uploadBox.forEach(box => {
+    box.addEventListener('mouseenter', () => {
+      box.classList.add('hovered');
+    });
+
+    box.addEventListener('mouseleave', () => {
+      box.classList.remove('hovered');
+    });
   });
-});
+};
