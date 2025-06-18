@@ -80,14 +80,14 @@ def image_upload():
         return redirect(url_for("aadhaar"))
 
     return render_template("imageupload.html")
-@app.route('/aadhaar', methods=['POST'])
+
+@app.route('/aadhaar', methods=['GET', 'POST'])
 def aadhaar():
-    try:
-        symptoms = request.form['symptoms']
-        aadhaar_file = request.files['aadhaar']
+    if request.method == 'POST':
+        aadhaar_file = request.files.get('aadhaar')
 
         if not aadhaar_file:
-            return "<h2>No file uploaded. Please try again.</h2><a href='/symptoms'>🡸 Try Again</a>"
+            return "<h2>No Aadhaar file uploaded. Please try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
 
         filename = aadhaar_file.filename.replace(" ", "_")
         filepath = os.path.join(UPLOAD_FOLDER, filename)
@@ -120,7 +120,7 @@ def aadhaar():
         if not (aadhaar_match and dob_match and name_match):
             return """
             <h2>❌ Aadhaar extraction failed. Please upload a clearer Aadhaar card image.</h2>
-            <a href='/symptoms'>🡸 Try Again</a>
+            <a href='/aadhaar'>🡸 Try Again</a>
             """
 
         extracted_name = name_match.group(1) if name_match.lastindex else name_match.group()
@@ -135,15 +135,10 @@ def aadhaar():
             name=extracted_name,
             dob=extracted_dob,
             aadhaar=extracted_aadhaar,
-            symptoms=symptoms
+            symptoms=session.get("symptoms", "")
         ))
 
-    except Exception as e:
-        print("⚠️ OCR Error:", str(e))
-        return """
-        <h2>Unexpected error occurred while processing the Aadhaar. Please try again.</h2>
-        <a href='/symptoms'>🡸 Try Again</a>
-        """
+    return render_template("aadhaar.html")
 
 def generate_soap_strict(symptoms, name, dob, aadhaar):
     return f"""
@@ -177,7 +172,7 @@ def report():
     name = request.args.get("name")
     dob = request.args.get("dob")
     aadhaar = request.args.get("aadhaar")
-    symptoms = request.args.get("symptoms").lower()
+    symptoms = request.args.get("symptoms", "").lower()
 
     with open("symptom_keywords.txt", "r") as file:
         keywords = [line.strip().lower() for line in file if line.strip()]
