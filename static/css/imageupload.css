@@ -1,0 +1,78 @@
+body {
+  background-color: #1d1f21;
+  color: #ffffff;
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.upload-container {
+  max-width: 450px;
+  margin: 40px auto;
+  background-color: #2b2d31;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+  text-align: center;
+}
+
+h2 {
+  margin-bottom: 15px;
+}
+
+p {
+  font-size: 15px;
+  margin-bottom: 25px;
+  color: #ccc;
+}
+
+label {
+  display: block;
+  text-align: left;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+input[type="file"] {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  margin-top: 6px;
+  background-color: #3a3d42;
+  border: 1px solid #555;
+  border-radius: 8px;
+  color: white;
+}
+
+.buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+button, .skip-btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button {
+  background-color: #5f27cd;
+}
+
+button:hover {
+  background-color: #7649e0;
+}
+
+.skip-btn {
+  background-color: #444;
+  line-height: 35px;
+}
+
+.skip-btn:hover {
+  background-color: #666;
+}
