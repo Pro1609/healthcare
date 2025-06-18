@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upload Images or Videos</title>
+  <link rel="stylesheet" href="/static/css/imageupload.css" />
+</head>
+<body>
+  <div class="upload-container">
+    <h2>📷 Upload Media</h2>
+    <p>If you have any images or videos related to your symptoms, please upload them here. Otherwise, you can skip this step.</p>
+
+    <form action="/imageupload" method="post" enctype="multipart/form-data">
+      <label>Upload Image:
+        <input type="file" name="image" accept="image/*">
+      </label>
+      <label>Upload Video:
+        <input type="file" name="video" accept="video/*">
+      </label>
+      <div class="buttons">
+        <button type="submit">Continue</button>
+        <a href="/aadhaar" class="skip-btn">Skip</a>
+      </div>
+    </form>
+  </div>
+  <script src="/static/js/imageupload.js"></script>
+</body>
+</html>
