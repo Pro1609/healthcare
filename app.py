@@ -95,9 +95,9 @@ def aadhaar():
         <a href='/aadhaar'>🡸 Try Again</a>
         """
 
-    if not aadhaar_file.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp', '.pdf')):
+    if not aadhaar_file.filename.lower().endswith('.pdf'):
         return """
-        <h2>Only image or PDF formats (.jpg, .png, .jpeg, .webp, .pdf) are allowed.</h2>
+        <h2>Only PDF format (.pdf) is allowed for Aadhaar upload.</h2>
         <a href='/aadhaar'>🡸 Try Again</a>
         """
 
@@ -116,7 +116,7 @@ def aadhaar():
         raw_text = ocr_result.json()['ParsedResults'][0]['ParsedText']
     except (KeyError, IndexError):
         return """
-        <h2>OCR failed. Please try with a clearer Aadhaar image or PDF.</h2>
+        <h2>OCR failed. Please try with a clearer Aadhaar PDF.</h2>
         <a href='/aadhaar'>🡸 Try Again</a>
         """
 
@@ -124,24 +124,20 @@ def aadhaar():
     cleaned_text = clean_ocr_text(raw_text)
     print("🧹 Cleaned OCR Text:\n", cleaned_text)
 
-    aadhaar_match = re.search(r'\b\d{4}\s\d{4}\s\d{4}\b|\b\d{12}\b', cleaned_text)
+    aadhaar_match = re.search(r'\d{4}\s\d{4}\s\d{4}|\d{12}', cleaned_text)
     dob_match = re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text)
     if not dob_match:
-        dob_match = re.search(r'\b(19|20)\d{2}\b', cleaned_text)
+        dob_match = re.search(r'(19|20)\d{2}', cleaned_text)
 
-    name_match = (
-        re.search(r'Name[:\s]*([A-Z][a-z]+(?:\s[A-Z][a-z]+)+)', cleaned_text) or
-        re.search(r'[A-Z][a-z]+(?:\s[A-Z][a-z]+)+', cleaned_text) or
-        re.search(r'[A-Z]{3,}(?:\s[A-Z]{3,})*', cleaned_text)
-    )
+    name_match = re.search(r'\b[A-Z][a-z]+\s[A-Z][a-z]+\b', cleaned_text)
 
     if not (aadhaar_match and dob_match and name_match):
         return """
-        <h2>❌ Aadhaar extraction failed. Please upload a clearer Aadhaar card image or PDF.</h2>
+        <h2>❌ Aadhaar extraction failed. Please upload a clearer Aadhaar PDF.</h2>
         <a href='/aadhaar'>🡸 Try Again</a>
         """
 
-    extracted_name = name_match.group(1) if name_match.lastindex else name_match.group()
+    extracted_name = name_match.group()
     extracted_dob = dob_match.group().replace("-", "/")
     extracted_aadhaar = aadhaar_match.group()
 
@@ -155,6 +151,7 @@ def aadhaar():
         aadhaar=extracted_aadhaar,
         symptoms=session.get("symptoms", "")
     ))
+
 
 def generate_soap_strict(symptoms, name, dob, aadhaar):
     return f"""
