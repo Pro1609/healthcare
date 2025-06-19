@@ -65,26 +65,26 @@ body, html {
   box-shadow: 0 0 8px #7649e0;
 }
 
-/* Upload Box Container */
-.upload-wrapper {
+/* Upload Form Container */
+.upload-area {
   background-color: #1f1f1f;
-  padding: 40px;
+  padding: 30px 40px;
   border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
   max-width: 600px;
   width: 100%;
-  margin: 60px auto;
+  margin: 80px auto;
   text-align: center;
 }
 
-.upload-wrapper h2 {
-  margin-bottom: 30px;
-  font-size: 22px;
+h2 {
+  margin-bottom: 20px;
+  color: #f0f0f0;
 }
 
 .upload-box {
   background-color: #2a2a2a;
-  padding: 30px;
+  padding: 20px;
   border: 2px dashed #888;
   border-radius: 15px;
   margin-bottom: 25px;
@@ -92,36 +92,40 @@ body, html {
 }
 
 .upload-box:hover {
-  transform: scale(1.03);
+  transform: scale(1.02);
   background-color: #3a3a3a;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+.upload-box label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #ddd;
 }
 
 .upload-box input[type="file"] {
-  background-color: #333;
-  color: #fff;
-  border: 1px solid #555;
-  padding: 10px;
-  border-radius: 8px;
+  background-color: #3b3b3b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px;
   width: 100%;
-  margin-top: 10px;
-  cursor: pointer;
 }
 
-button.submit-btn, button.skip-btn {
-  padding: 12px 28px;
-  margin: 10px;
+button {
+  padding: 12px 24px;
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
   background-color: #5f27cd;
   color: white;
   font-size: 16px;
   cursor: pointer;
+  margin: 10px;
   transition: all 0.3s ease;
-  width: 48%;
 }
 
-button.submit-btn:hover, button.skip-btn:hover {
+button:hover {
   background-color: #7649e0;
   box-shadow: 0 0 10px rgba(95, 39, 205, 0.4);
 }
@@ -134,21 +138,21 @@ button.submit-btn:hover, button.skip-btn:hover {
     padding: 20px;
   }
 
-  .upload-wrapper {
-    width: 95vw;
+  .upload-area {
+    width: 90vw;
+    margin: 100px auto 40px auto;
     padding: 20px;
-    margin: 80px auto 100px;
   }
 
   .stepbar {
     flex-direction: row;
-    bottom: 0;
+    position: fixed;
+    bottom: 20px;
     top: auto;
     right: 50%;
     transform: translateX(50%);
-    padding: 8px 16px;
+    padding: 10px;
     border-radius: 16px;
-    gap: 12px;
     background-color: #2c2c2c;
   }
 
@@ -156,11 +160,6 @@ button.submit-btn:hover, button.skip-btn:hover {
     width: 28px;
     height: 28px;
     font-size: 13px;
-  }
-
-  input[type="range"] {
-    height: 24px;
-    font-size: 14px;
   }
 }
 
