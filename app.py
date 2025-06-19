@@ -102,43 +102,56 @@ def aadhaar():
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     aadhaar_file.save(filepath)
 
-    with open(filepath, 'rb') as f:
-        ocr_result = requests.post(
-            'https://api.ocr.space/parse/image',
-            files={"filename": f},
-            data={"apikey": OCR_API_KEY, "isOverlayRequired": False, "OCREngine": 2, "scale": True, "isTable": False}
-        )
-
     try:
+        with open(filepath, 'rb') as f:
+            ocr_result = requests.post(
+                'https://api.ocr.space/parse/image',
+                files={"filename": f},
+                data={
+                    "apikey": OCR_API_KEY,
+                    "isOverlayRequired": False,
+                    "OCREngine": 2,
+                    "scale": True,
+                    "isTable": False
+                }
+            )
+
         raw_text = ocr_result.json()['ParsedResults'][0]['ParsedText']
-    except (KeyError, IndexError):
+        print("🔍 Raw OCR Text:\n", raw_text)
+
+    except (KeyError, IndexError, Exception) as e:
+        print("❌ OCR Error:", str(e))
         return """
         <h2>OCR failed. Please try with a clearer Aadhaar PDF.</h2>
         <a href='/aadhaar'>🡸 Try Again</a>
         """
 
-    print("🔍 Raw OCR Text:\n", raw_text)
     cleaned_text = clean_ocr_text(raw_text)
     print("🧹 Cleaned OCR Text:\n", cleaned_text)
 
+    # Aadhaar Number
     aadhaar_match = re.search(r'\b\d{4}\s\d{4}\s\d{4}\b|\b\d{12}\b', cleaned_text)
+    extracted_aadhaar = aadhaar_match.group() if aadhaar_match else "Aadhaar Not Detected"
+
+    # DOB Detection
     dob_match = (
         re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text) or
         re.search(r'Year\s*of\s*Birth\s*[:\s]*((?:19|20)\d{2})', cleaned_text, re.IGNORECASE) or
         re.search(r'\b(19|20)\d{2}\b', cleaned_text)
     )
+    extracted_dob = dob_match.group(1) if dob_match and dob_match.lastindex else (
+        dob_match.group() if dob_match else "DOB Not Detected"
+    )
 
-    name_match = None
+    # Name Detection: Skip lines with colons, look for proper capitalized name line
+    extracted_name = "Name Not Detected"
     for line in cleaned_text.split("\n"):
+        line = line.strip()
         if ':' in line:
             continue
-        if re.match(r'^[A-Z][a-z]+(\s[A-Z][a-z]+)+$', line.strip()):
-            name_match = line.strip()
+        if re.match(r'^[A-Z][a-z]+(\s[A-Z][a-z]+)+$', line):
+            extracted_name = line
             break
-
-    extracted_name = name_match if name_match else "Name Not Detected"
-    extracted_dob = dob_match.group(1) if dob_match else "DOB Not Detected"
-    extracted_aadhaar = aadhaar_match.group() if aadhaar_match else "Aadhaar Not Detected"
 
     print("✅ Extracted Name:", extracted_name)
     print("✅ Extracted DOB:", extracted_dob)
