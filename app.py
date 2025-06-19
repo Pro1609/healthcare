@@ -141,9 +141,9 @@ def aadhaar():
         try:
              extracted_name = name_match.group(1)
         except IndexError:
-                extracted_name = name_match.group()
+            extracted_name = name_match.group()
     else:
-    extracted_name = "Name Not Detected"
+        extracted_name = "Name Not Detected"
 
     extracted_dob = dob_match.group(1) if dob_match else "DOB Not Detected"
     extracted_aadhaar = aadhaar_match.group()
