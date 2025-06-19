@@ -123,7 +123,14 @@ def aadhaar():
 
     aadhaar_match = re.search(r'\b\d{4}\s\d{4}\s\d{4}\b|\b\d{12}\b', cleaned_text)
     dob_match = (
-        re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text) or
+    if name_match:
+        try:
+            extracted_name = name_match.group(1)
+        except IndexError:
+            extracted_name = name_match.group()
+    else:
+        extracted_name = "Name Not Detected"
+
         re.search(r'Year\s*of\s*Birth\s*[:\s]*((?:19|20)\d{2})', cleaned_text, re.IGNORECASE) or
         re.search(r'\b(19|20)\d{2}\b', cleaned_text)
     )
