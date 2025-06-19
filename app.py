@@ -24,10 +24,8 @@ TWILIO_VERIFY_SERVICE_SID = os.getenv("TWILIO_VERIFY_SERVICE_SID")
 openai.api_key = TOGETHER_API_KEY
 openai.base_url = "https://api.together.xyz/v1"
 
-# Twilio client
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
-# Aadhaar filter
 with open("aadhaar_filter_keywords.txt", "r") as f:
     unwanted = [line.strip().lower() for line in f]
 
@@ -35,7 +33,6 @@ def clean_ocr_text(text):
     lines = text.split("\n")
     return "\n".join(line for line in lines if all(word not in line.lower() for word in unwanted))
 
-# Routes
 @app.route('/')
 @app.route('/home')
 def home():
@@ -97,7 +94,7 @@ def aadhaar():
 
     if not aadhaar_file.filename.lower().endswith('.pdf'):
         return """
-        <h2>Only PDF format (.pdf) is allowed for Aadhaar upload.</h2>
+        <h2>Only PDF format is currently supported.</h2>
         <a href='/aadhaar'>🡸 Try Again</a>
         """
 
@@ -124,21 +121,24 @@ def aadhaar():
     cleaned_text = clean_ocr_text(raw_text)
     print("🧹 Cleaned OCR Text:\n", cleaned_text)
 
-    aadhaar_match = re.search(r'\d{4}\s\d{4}\s\d{4}|\d{12}', cleaned_text)
-    dob_match = re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text)
-    if not dob_match:
-        dob_match = re.search(r'(19|20)\d{2}', cleaned_text)
+    aadhaar_match = re.search(r'\b\d{4}\s\d{4}\s\d{4}\b|\b\d{12}\b', cleaned_text)
+    dob_match = (
+        re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text) or
+        re.search(r'Year\s*of\s*Birth\s*[:\s]*((?:19|20)\d{2})', cleaned_text, re.IGNORECASE) or
+        re.search(r'\b(19|20)\d{2}\b', cleaned_text)
+    )
 
-    name_match = re.search(r'\b[A-Z][a-z]+\s[A-Z][a-z]+\b', cleaned_text)
+    name_match = (
+        re.search(r'Name[:\s]*([A-Z][a-z]+(?:\s[A-Z][a-z]+)+)', cleaned_text) or
+        re.search(r'[A-Z][a-z]+(?:\s[A-Z][a-z]+)+', cleaned_text) or
+        re.search(r'[A-Z]{3,}(?:\s[A-Z]{3,})*', cleaned_text)
+    )
 
-    if not (aadhaar_match and dob_match and name_match):
-        return """
-        <h2>❌ Aadhaar extraction failed. Please upload a clearer Aadhaar PDF.</h2>
-        <a href='/aadhaar'>🡸 Try Again</a>
-        """
+    if not aadhaar_match:
+        return "<h2>❌ Aadhaar number not found. Try again with a clearer PDF.</h2><a href='/aadhaar'>🡸 Try Again</a>"
 
-    extracted_name = name_match.group()
-    extracted_dob = dob_match.group().replace("-", "/")
+    extracted_name = name_match.group(1) if name_match else "Name Not Detected"
+    extracted_dob = dob_match.group(1) if dob_match else "DOB Not Detected"
     extracted_aadhaar = aadhaar_match.group()
 
     print("✅ Extracted Name:", extracted_name)
@@ -152,6 +152,7 @@ def aadhaar():
         symptoms=session.get("symptoms", "")
     ))
 
+# (Other routes below remain unchanged)
 
 def generate_soap_strict(symptoms, name, dob, aadhaar):
     return f"""
