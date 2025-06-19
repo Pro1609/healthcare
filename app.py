@@ -152,8 +152,6 @@ def aadhaar():
         symptoms=session.get("symptoms", "")
     ))
 
-# (Other routes below remain unchanged)
-
 def generate_soap_strict(symptoms, name, dob, aadhaar):
     return f"""
 SOAP Report for {name}
@@ -244,14 +242,7 @@ Make the response realistic, useful, and grounded only in the data provided abov
         print("AI fallback reason:", str(e))
         soap_note = generate_soap_strict(symptoms, name, dob, aadhaar)
 
-    return f"""
-    <h2>SOAP Report for {name}</h2>
-    <p><b>Date of Birth:</b> {dob}</p>
-    <p><b>Aadhaar Number:</b> {aadhaar}</p>
-    <pre>{soap_note}</pre>
-    <br><br>
-    <a href='/symptoms'>🡸 Back to Start</a>
-    """
+    return render_template("report.html", name=name, dob=dob, aadhaar=aadhaar, soap=soap_note)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
