@@ -1,0 +1,68 @@
+/* report.css */
+body {
+  background-color: #121212;
+  color: #ffffff;
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 28px;
+  color: #c084fc;
+}
+
+.details {
+  margin-bottom: 30px;
+  text-align: center;
+  font-size: 16px;
+  color: #bbbbbb;
+}
+
+.soap-section {
+  background-color: #1f1f1f;
+  border-left: 6px solid #7649e0;
+  margin-bottom: 25px;
+  padding: 20px;
+  border-radius: 14px;
+  opacity: 0;
+  transform: translateX(-40px);
+  animation: slideIn 0.6s ease forwards;
+}
+
+.soap-section h3 {
+  margin-top: 0;
+  color: #ffffff;
+  font-size: 20px;
+  border-bottom: 1px solid #444;
+  padding-bottom: 8px;
+  margin-bottom: 15px;
+}
+
+.soap-section p {
+  margin: 0;
+  color: #dddddd;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.soap-section:nth-child(1) { animation-delay: 0.2s; }
+.soap-section:nth-child(2) { animation-delay: 0.4s; }
+.soap-section:nth-child(3) { animation-delay: 0.6s; }
+.soap-section:nth-child(4) { animation-delay: 0.8s; }
+
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
