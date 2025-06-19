@@ -41,11 +41,9 @@ def clean_ocr_text(text):
 def home():
     return render_template("home.html")
 
-
 @app.route('/login')
 def login():
     return render_template("login.html")
-
 
 @app.route('/symptoms', methods=['GET', 'POST'])
 def symptoms():
@@ -59,7 +57,6 @@ def symptoms():
         session['symptoms'] = symptoms_text
         session['severity'] = severity
 
-        # 🔁 Redirect to imageupload (correct step)
         return redirect(url_for('image_upload'))
 
     return render_template("symptoms.html")
@@ -81,11 +78,9 @@ def image_upload():
 
         print("✅ Uploaded media files:", uploaded_files)
 
-        # ⏩ Continue to Aadhaar step
         return redirect(url_for("aadhaar"))
 
     return render_template("imageupload.html")
-
 
 @app.route('/aadhaar', methods=['GET', 'POST'])
 def aadhaar():
@@ -93,7 +88,10 @@ def aadhaar():
         aadhaar_file = request.files.get('aadhaar')
 
         if not aadhaar_file:
-            return "<h2>No Aadhaar file uploaded. Please try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
+            return """
+            <h2>No Aadhaar file uploaded. Please try again.</h2>
+            <a href='/aadhaar'>🡸 Try Again</a>
+            """
 
         filename = aadhaar_file.filename.replace(" ", "_")
         filepath = os.path.join(UPLOAD_FOLDER, filename)
