@@ -95,9 +95,9 @@ def aadhaar():
         <a href='/aadhaar'>🡸 Try Again</a>
         """
 
-    if not aadhaar_file.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
+    if not aadhaar_file.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp', '.pdf')):
         return """
-        <h2>Only image formats (.jpg, .png, .jpeg, .webp) are allowed.</h2>
+        <h2>Only image or PDF formats (.jpg, .png, .jpeg, .webp, .pdf) are allowed.</h2>
         <a href='/aadhaar'>🡸 Try Again</a>
         """
 
@@ -109,14 +109,14 @@ def aadhaar():
         ocr_result = requests.post(
             'https://api.ocr.space/parse/image',
             files={"filename": f},
-            data={"apikey": OCR_API_KEY}
+            data={"apikey": OCR_API_KEY, "isOverlayRequired": False, "OCREngine": 2}
         )
 
     try:
         raw_text = ocr_result.json()['ParsedResults'][0]['ParsedText']
     except (KeyError, IndexError):
         return """
-        <h2>OCR failed. Please try with a clearer Aadhaar image.</h2>
+        <h2>OCR failed. Please try with a clearer Aadhaar image or PDF.</h2>
         <a href='/aadhaar'>🡸 Try Again</a>
         """
 
@@ -137,7 +137,7 @@ def aadhaar():
 
     if not (aadhaar_match and dob_match and name_match):
         return """
-        <h2>❌ Aadhaar extraction failed. Please upload a clearer Aadhaar card image.</h2>
+        <h2>❌ Aadhaar extraction failed. Please upload a clearer Aadhaar card image or PDF.</h2>
         <a href='/aadhaar'>🡸 Try Again</a>
         """
 
@@ -155,7 +155,6 @@ def aadhaar():
         aadhaar=extracted_aadhaar,
         symptoms=session.get("symptoms", "")
     ))
-
 
 def generate_soap_strict(symptoms, name, dob, aadhaar):
     return f"""
