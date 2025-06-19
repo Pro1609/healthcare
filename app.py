@@ -84,65 +84,78 @@ def image_upload():
 
 @app.route('/aadhaar', methods=['GET', 'POST'])
 def aadhaar():
-    if request.method == 'POST':
-        aadhaar_file = request.files.get('aadhaar')
+    if request.method == 'GET':
+        return render_template("aadhaar.html")
 
-        if not aadhaar_file:
-            return """
-            <h2>No Aadhaar file uploaded. Please try again.</h2>
-            <a href='/aadhaar'>🡸 Try Again</a>
-            """
+    aadhaar_file = request.files.get('aadhaar')
 
-        filename = aadhaar_file.filename.replace(" ", "_")
-        filepath = os.path.join(UPLOAD_FOLDER, filename)
-        aadhaar_file.save(filepath)
+    if not aadhaar_file or aadhaar_file.filename == '':
+        return """
+        <h2>No Aadhaar file uploaded. Please try again.</h2>
+        <a href='/aadhaar'>🡸 Try Again</a>
+        """
 
-        with open(filepath, 'rb') as f:
-            ocr_result = requests.post(
-                'https://api.ocr.space/parse/image',
-                files={"filename": f},
-                data={"apikey": OCR_API_KEY}
-            )
+    if not aadhaar_file.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
+        return """
+        <h2>Only image formats (.jpg, .png, .jpeg, .webp) are allowed.</h2>
+        <a href='/aadhaar'>🡸 Try Again</a>
+        """
 
-        raw_text = ocr_result.json()['ParsedResults'][0]['ParsedText']
-        print("🔍 Raw OCR Text:\n", raw_text)
+    filename = aadhaar_file.filename.replace(" ", "_")
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    aadhaar_file.save(filepath)
 
-        cleaned_text = clean_ocr_text(raw_text)
-        print("🧹 Cleaned OCR Text:\n", cleaned_text)
-
-        aadhaar_match = re.search(r'\b\d{4}\s\d{4}\s\d{4}\b|\b\d{12}\b', cleaned_text)
-        dob_match = re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text)
-        if not dob_match:
-            dob_match = re.search(r'\b(19|20)\d{2}\b', cleaned_text)
-
-        name_match = (
-            re.search(r'Name[:\s]*([A-Z][a-z]+(?:\s[A-Z][a-z]+)+)', cleaned_text) or
-            re.search(r'[A-Z][a-z]+(?:\s[A-Z][a-z]+)+', cleaned_text) or
-            re.search(r'[A-Z]{3,}(?:\s[A-Z]{3,})*', cleaned_text)
+    with open(filepath, 'rb') as f:
+        ocr_result = requests.post(
+            'https://api.ocr.space/parse/image',
+            files={"filename": f},
+            data={"apikey": OCR_API_KEY}
         )
 
-        if not (aadhaar_match and dob_match and name_match):
-            return """
-            <h2>❌ Aadhaar extraction failed. Please upload a clearer Aadhaar card image.</h2>
-            <a href='/aadhaar'>🡸 Try Again</a>
-            """
+    try:
+        raw_text = ocr_result.json()['ParsedResults'][0]['ParsedText']
+    except (KeyError, IndexError):
+        return """
+        <h2>OCR failed. Please try with a clearer Aadhaar image.</h2>
+        <a href='/aadhaar'>🡸 Try Again</a>
+        """
 
-        extracted_name = name_match.group(1) if name_match.lastindex else name_match.group()
-        extracted_dob = dob_match.group().replace("-", "/")
-        extracted_aadhaar = aadhaar_match.group()
+    print("🔍 Raw OCR Text:\n", raw_text)
+    cleaned_text = clean_ocr_text(raw_text)
+    print("🧹 Cleaned OCR Text:\n", cleaned_text)
 
-        print("✅ Extracted Name:", extracted_name)
-        print("✅ Extracted DOB:", extracted_dob)
-        print("✅ Extracted Aadhaar:", extracted_aadhaar)
+    aadhaar_match = re.search(r'\b\d{4}\s\d{4}\s\d{4}\b|\b\d{12}\b', cleaned_text)
+    dob_match = re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text)
+    if not dob_match:
+        dob_match = re.search(r'\b(19|20)\d{2}\b', cleaned_text)
 
-        return redirect(url_for('report',
-            name=extracted_name,
-            dob=extracted_dob,
-            aadhaar=extracted_aadhaar,
-            symptoms=session.get("symptoms", "")
-        ))
+    name_match = (
+        re.search(r'Name[:\s]*([A-Z][a-z]+(?:\s[A-Z][a-z]+)+)', cleaned_text) or
+        re.search(r'[A-Z][a-z]+(?:\s[A-Z][a-z]+)+', cleaned_text) or
+        re.search(r'[A-Z]{3,}(?:\s[A-Z]{3,})*', cleaned_text)
+    )
 
-    return render_template("aadhaar.html")
+    if not (aadhaar_match and dob_match and name_match):
+        return """
+        <h2>❌ Aadhaar extraction failed. Please upload a clearer Aadhaar card image.</h2>
+        <a href='/aadhaar'>🡸 Try Again</a>
+        """
+
+    extracted_name = name_match.group(1) if name_match.lastindex else name_match.group()
+    extracted_dob = dob_match.group().replace("-", "/")
+    extracted_aadhaar = aadhaar_match.group()
+
+    print("✅ Extracted Name:", extracted_name)
+    print("✅ Extracted DOB:", extracted_dob)
+    print("✅ Extracted Aadhaar:", extracted_aadhaar)
+
+    return redirect(url_for('report',
+        name=extracted_name,
+        dob=extracted_dob,
+        aadhaar=extracted_aadhaar,
+        symptoms=session.get("symptoms", "")
+    ))
+
 
 def generate_soap_strict(symptoms, name, dob, aadhaar):
     return f"""
