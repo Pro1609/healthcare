@@ -123,14 +123,7 @@ def aadhaar():
 
     aadhaar_match = re.search(r'\b\d{4}\s\d{4}\s\d{4}\b|\b\d{12}\b', cleaned_text)
     dob_match = (
-    if name_match:
-        try:
-            extracted_name = name_match.group(1)
-        except IndexError:
-            extracted_name = name_match.group()
-    else:
-        extracted_name = "Name Not Detected"
-
+        re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text) or
         re.search(r'Year\s*of\s*Birth\s*[:\s]*((?:19|20)\d{2})', cleaned_text, re.IGNORECASE) or
         re.search(r'\b(19|20)\d{2}\b', cleaned_text)
     )
@@ -144,7 +137,14 @@ def aadhaar():
     if not aadhaar_match:
         return "<h2>❌ Aadhaar number not found. Try again with a clearer PDF.</h2><a href='/aadhaar'>🡸 Try Again</a>"
 
-    extracted_name = name_match.group(1) if name_match else "Name Not Detected"
+    if name_match:
+        try:
+             extracted_name = name_match.group(1)
+        except IndexError:
+                extracted_name = name_match.group()
+    else:
+    extracted_name = "Name Not Detected"
+
     extracted_dob = dob_match.group(1) if dob_match else "DOB Not Detected"
     extracted_aadhaar = aadhaar_match.group()
 
