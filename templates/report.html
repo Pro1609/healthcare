@@ -2,57 +2,49 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SOAP Report</title>
   <link rel="stylesheet" href="/static/css/report.css" />
 </head>
 <body>
   <div class="report-container">
+    <div class="stepbar">
+      <div>1</div>
+      <div>2</div>
+      <div>3</div>
+      <div>4</div>
+      <div>5</div>
+      <div>6</div>
+      <div class="active">7</div>
+    </div>
+
     <h1>🧾 SOAP Report for {{ name }}</h1>
     <p><strong>Date of Birth:</strong> {{ dob }}</p>
     <p><strong>Aadhaar Number:</strong> {{ aadhaar }}</p>
 
-    <div class="soap-section fade-slide delay-1">
-      <h2>Subjective</h2>
-      <p>
-        {{ soap.split('Objective:')[0].split('Subjective:')[-1].strip() }}
-      </p>
+    <div class="soap-box fade-in">
+      <div class="soap-header">Subjective <span class="divider"></span></div>
+      <p>{{ soap.split('Subjective:')[1].split('Objective:')[0].strip() }}</p>
     </div>
 
-    <div class="soap-section fade-slide delay-2">
-      <h2>Objective</h2>
-      <p>
-        {{ soap.split('Assessment:')[0].split('Objective:')[-1].strip() }}
-      </p>
+    <div class="soap-box fade-in">
+      <div class="soap-header">Objective <span class="divider"></span></div>
+      <p>{{ soap.split('Objective:')[1].split('Assessment:')[0].strip() }}</p>
     </div>
 
-    <div class="soap-section fade-slide delay-3">
-      <h2>Assessment</h2>
-      <p>
-        {{ soap.split('Plan:')[0].split('Assessment:')[-1].strip() }}
-      </p>
+    <div class="soap-box fade-in">
+      <div class="soap-header">Assessment <span class="divider"></span></div>
+      <p>{{ soap.split('Assessment:')[1].split('Plan:')[0].strip() }}</p>
     </div>
 
-    <div class="soap-section fade-slide delay-4">
-      <h2>Plan</h2>
-      <p>
-        {{ soap.split('Triage Severity Score:')[0].split('Plan:')[-1].strip() }}
-      </p>
+    <div class="soap-box fade-in">
+      <div class="soap-header">Plan <span class="divider"></span></div>
+      <p>{{ soap.split('Plan:')[1].split('Triage Severity Score:')[0].strip() }}</p>
+      <p><strong>Triage Score:</strong> {{ soap.split('Triage Severity Score:')[1].split('One-line')[0].strip() }}/10</p>
+      <p><strong>One-line Advice:</strong> {{ soap.split('One-line health advice:')[1].strip() }}</p>
     </div>
 
-    <div class="soap-section fade-slide delay-5">
-      <h2>Triage Score</h2>
-      <p><strong>{{ soap.split('Triage Severity Score:')[-1].split('One-line')[0].strip() }}</strong></p>
-    </div>
-
-    <div class="soap-section fade-slide delay-6">
-      <h2>One-line Advice</h2>
-      <p>{{ soap.split('One-line health advice:')[-1].strip() }}</p>
-    </div>
-
-    <a href="/symptoms" class="back-btn">🡸 Start Again</a>
   </div>
-
   <script src="/static/js/report.js"></script>
 </body>
 </html>
