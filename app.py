@@ -106,7 +106,7 @@ def aadhaar():
         ocr_result = requests.post(
             'https://api.ocr.space/parse/image',
             files={"filename": f},
-            data={"apikey": OCR_API_KEY, "isOverlayRequired": False, "OCREngine": 2}
+            data={"apikey": OCR_API_KEY, "isOverlayRequired": False, "OCREngine": 2, "scale": True, "isTable": False}
         )
 
     try:
@@ -128,25 +128,17 @@ def aadhaar():
         re.search(r'\b(19|20)\d{2}\b', cleaned_text)
     )
 
-    name_match = (
-        re.search(r'Name[:\s]*([A-Z][a-z]+(?:\s[A-Z][a-z]+)+)', cleaned_text) or
-        re.search(r'[A-Z][a-z]+(?:\s[A-Z][a-z]+)+', cleaned_text) or
-        re.search(r'[A-Z]{3,}(?:\s[A-Z]{3,})*', cleaned_text)
-    )
+    name_match = None
+    for line in cleaned_text.split("\n"):
+        if ':' in line:
+            continue
+        if re.match(r'^[A-Z][a-z]+(\s[A-Z][a-z]+)+$', line.strip()):
+            name_match = line.strip()
+            break
 
-    if not aadhaar_match:
-        return "<h2>❌ Aadhaar number not found. Try again with a clearer PDF.</h2><a href='/aadhaar'>🡸 Try Again</a>"
-
-    if name_match:
-        try:
-             extracted_name = name_match.group(1)
-        except IndexError:
-            extracted_name = name_match.group()
-    else:
-        extracted_name = "Name Not Detected"
-
+    extracted_name = name_match if name_match else "Name Not Detected"
     extracted_dob = dob_match.group(1) if dob_match else "DOB Not Detected"
-    extracted_aadhaar = aadhaar_match.group()
+    extracted_aadhaar = aadhaar_match.group() if aadhaar_match else "Aadhaar Not Detected"
 
     print("✅ Extracted Name:", extracted_name)
     print("✅ Extracted DOB:", extracted_dob)
@@ -174,16 +166,16 @@ Objective:
 No vital signs or physical examination data provided.
 
 Assessment:
-The described symptoms may be associated with common conditions. Further diagnostic evaluation is recommended for a more accurate assessment.
+Based on the symptoms, the condition could range from a mild infection to a potentially serious illness. Please consider clinical examination.
 
 Plan:
-1. Visit a local health center or hospital for examination.
-2. Basic diagnostic tests (e.g., CBC, imaging) may be required based on symptoms.
-3. Follow general advice on hydration, rest, and symptom tracking.
+1. Immediate consultation with a physician.
+2. Blood tests and imaging if necessary.
+3. Monitor temperature and pain levels regularly.
 
-Triage Severity Score: 5/10
+Triage Severity Score: 7/10
 
-One-line health advice: Please consult a doctor for further evaluation of your symptoms.
+One-line health advice: Please seek urgent medical attention if symptoms worsen or do not improve.
 """
 
 @app.route('/report')
@@ -209,26 +201,22 @@ def report():
     prompt = f"""
 You are a medical assistant generating a SOAP (Subjective, Objective, Assessment, Plan) note.
 
-Please use only the following verified patient details and the symptom description. Do not add or assume any extra symptoms or diagnoses.
+Use only the verified patient data below. Provide a clinically realistic and useful output.
 
 Patient Name: {name}
 Date of Birth: {dob}
 Aadhaar: {aadhaar}
 
-Symptoms Reported by Patient:
+Symptoms:
 "{symptoms}"
 
 Instructions:
-- Use only the symptoms provided — do not fabricate or modify them.
-- The note should follow the SOAP format:
-  - Subjective: Summarize what the patient described in simple clinical language.
-  - Objective: Leave this section blank unless examination data is provided.
-  - Assessment: Explain what could be the likely causes based only on the given symptoms.
-  - Plan: Recommend reasonable next steps (e.g., rest, hydration, tests, common meds, or doctor visit).
-- Add a triage severity score out of 10 based on urgency.
-- Conclude with a one-line health advice based on the same symptoms.
-
-Make the response realistic, useful, and grounded only in the data provided above.
+- Summarize the patient's complaint in Subjective.
+- Leave Objective blank unless there's medical data.
+- Make an educated clinical Assessment (avoid vague "common condition" remarks).
+- Suggest specific Plan actions.
+- Assign a triage score.
+- Give one-line advice based only on symptoms.
 """
 
     try:
