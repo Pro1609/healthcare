@@ -1,7 +1,9 @@
-// report.js
-window.addEventListener('DOMContentLoaded', () => {
-  const sections = document.querySelectorAll('.soap-section');
-  sections.forEach((section, i) => {
-    section.style.animationDelay = `${0.2 + i * 0.2}s`;
+window.onload = function () {
+  const boxes = document.querySelectorAll('.report-box');
+
+  boxes.forEach((box, index) => {
+    setTimeout(() => {
+      box.classList.add('slide-in');
+    }, index * 200); // slight delay for staggered animation
   });
-});
+};
