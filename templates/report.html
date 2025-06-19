@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SOAP Report</title>
+  <link rel="stylesheet" href="/static/css/report.css">
+</head>
+<body>
+  <div class="report-container">
+    <h1 class="report-title">🩺 SOAP Medical Report</h1>
+
+    <div class="soap-section fade-left" id="subjective">
+      <h2>S - Subjective</h2>
+      <p id="subjective-content">Loading...</p>
+    </div>
+
+    <div class="soap-section fade-left" id="objective">
+      <h2>O - Objective</h2>
+      <p id="objective-content">Loading...</p>
+    </div>
+
+    <div class="soap-section fade-left" id="assessment">
+      <h2>A - Assessment</h2>
+      <p id="assessment-content">Loading...</p>
+    </div>
+
+    <div class="soap-section fade-left" id="plan">
+      <h2>P - Plan</h2>
+      <p id="plan-content">Loading...</p>
+    </div>
+
+    <div class="triage-score">
+      <h3>Triage Score: <span id="triage-value">--</span>/10</h3>
+      <p id="health-advice">Health advice will appear here.</p>
+    </div>
+
+    <div class="back-button">
+      <a href="/symptoms">🡸 Back to Start</a>
+    </div>
+  </div>
+
+  <script src="/static/js/report.js"></script>
+</body>
+</html>
+
