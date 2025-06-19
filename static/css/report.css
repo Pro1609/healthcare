@@ -54,6 +54,17 @@ h2 {
   line-height: 1.5;
   white-space: pre-line;
 }
+.report-box {
+  opacity: 0;
+  transform: translateX(-100px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.report-box.slide-in {
+  opacity: 1;
+  transform: translateX(0);
+}
+
 
 .soap-section:nth-child(1) { animation-delay: 0.2s; }
 .soap-section:nth-child(2) { animation-delay: 0.4s; }
