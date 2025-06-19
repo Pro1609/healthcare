@@ -102,17 +102,15 @@ input[type="file"] {
     padding: 20px;
   }
 
-.stepbar {
-  flex-direction: row;
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #282828;
-  padding: 10px 16px;
-  border-radius: 12px;
-  z-index: 1000;
-}
+  .stepbar {
+    flex-direction: row;
+    bottom: 0;
+    top: auto;
+    right: 50%;
+    transform: translateX(50%);
+    padding: 8px 10px;
+    border-radius: 12px 12px 0 0;
+  }
 
 
   .stepbar div {
