@@ -1,13 +1,12 @@
 import os
 import re
 import requests
-import random
-from flask import Flask, render_template, request, redirect, url_for, jsonify, session
+from flask import Flask, render_template, request, redirect, url_for, session
 from dotenv import load_dotenv
-import openai
+from together import Together
 from twilio.rest import Client
 
-# Load env variables
+# Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
@@ -16,16 +15,17 @@ UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 OCR_API_KEY = os.getenv("OCR_API_KEY")
-TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_VERIFY_SERVICE_SID = os.getenv("TWILIO_VERIFY_SERVICE_SID")
 
-openai.api_key = TOGETHER_API_KEY
-openai.base_url = "https://api.together.xyz/v1"
+# AI Client
+client = Together()
 
+# Twilio Client
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
+# Aadhaar filter keywords
 with open("aadhaar_filter_keywords.txt", "r") as f:
     unwanted = [line.strip().lower() for line in f]
 
@@ -87,16 +87,10 @@ def aadhaar():
     aadhaar_file = request.files.get('aadhaar')
 
     if not aadhaar_file or aadhaar_file.filename == '':
-        return """
-        <h2>No Aadhaar file uploaded. Please try again.</h2>
-        <a href='/aadhaar'>🡸 Try Again</a>
-        """
+        return "<h2>No Aadhaar file uploaded. Please try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
 
     if not aadhaar_file.filename.lower().endswith('.pdf'):
-        return """
-        <h2>Only PDF format is currently supported.</h2>
-        <a href='/aadhaar'>🡸 Try Again</a>
-        """
+        return "<h2>Only PDF format is currently supported.</h2><a href='/aadhaar'>🡸 Try Again</a>"
 
     filename = aadhaar_file.filename.replace(" ", "_")
     filepath = os.path.join(UPLOAD_FOLDER, filename)
@@ -106,41 +100,37 @@ def aadhaar():
         ocr_result = requests.post(
             'https://api.ocr.space/parse/image',
             files={"filename": f},
-            data={"apikey": OCR_API_KEY, "isOverlayRequired": False, "OCREngine": 2, "scale": True, "isTable": False}
+            data={"apikey": OCR_API_KEY, "isOverlayRequired": False, "OCREngine": 2, "scale": True}
         )
 
     try:
         raw_text = ocr_result.json()['ParsedResults'][0]['ParsedText']
     except (KeyError, IndexError):
-        return """
-        <h2>OCR failed. Please try with a clearer Aadhaar PDF.</h2>
-        <a href='/aadhaar'>🡸 Try Again</a>
-        """
+        return "<h2>OCR failed. Please try with a clearer Aadhaar PDF.</h2><a href='/aadhaar'>🡸 Try Again</a>"
 
     print("🔍 Raw OCR Text:\n", raw_text)
     cleaned_text = clean_ocr_text(raw_text)
     print("🧹 Cleaned OCR Text:\n", cleaned_text)
 
-    # Aadhaar Number Extraction
-    aadhaar_match = re.search(r'\b\d{4}\s\d{4}\s\d{4}\b|\b\d{12}\b', cleaned_text)
-    extracted_aadhaar = aadhaar_match.group() if aadhaar_match else "Aadhaar Not Detected"
-
-    # DOB Extraction (Multiple fallbacks)
+    aadhaar_match = re.search(r'\b\d{4}\s\d{4}\s\d{4}\b', cleaned_text.replace("\n", " "))
     dob_match = (
         re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text) or
         re.search(r'Year\s*of\s*Birth\s*[:\s]*((?:19|20)\d{2})', cleaned_text, re.IGNORECASE) or
         re.search(r'\b(19|20)\d{2}\b', cleaned_text)
     )
-    extracted_dob = dob_match.group(1) if dob_match and dob_match.lastindex else (
-        dob_match.group() if dob_match else "DOB Not Detected"
-    )
 
-    # Name Extraction (safe fallback loop)
-    extracted_name = "Name Not Detected"
+    name_match = None
     for line in cleaned_text.split("\n"):
-        if line.strip() and len(line.split()) >= 2 and not any(x in line.lower() for x in ["govt", "male", "female", "year", "birth", "mother", "father"]):
-            extracted_name = line.strip()
+        line = line.strip()
+        if len(line) < 5 or "aadhaar" in line.lower() or any(char.isdigit() for char in line):
+            continue
+        if re.match(r"^[A-Z][a-z]+(?:\s[A-Z][a-z]+)*$", line) or re.match(r"^[A-Z\s]{8,}$", line):
+            name_match = line.title()
             break
+
+    extracted_name = name_match if name_match else "Name Not Detected"
+    extracted_dob = dob_match.group(1) if dob_match else "DOB Not Detected"
+    extracted_aadhaar = aadhaar_match.group() if aadhaar_match else "Aadhaar Not Detected"
 
     print("✅ Extracted Name:", extracted_name)
     print("✅ Extracted DOB:", extracted_dob)
@@ -152,7 +142,6 @@ def aadhaar():
         aadhaar=extracted_aadhaar,
         symptoms=session.get("symptoms", "")
     ))
-
 
 def generate_soap_strict(symptoms, name, dob, aadhaar):
     return f"""
@@ -169,16 +158,16 @@ Objective:
 No vital signs or physical examination data provided.
 
 Assessment:
-Based on the symptoms, the condition could range from a mild infection to a potentially serious illness. Please consider clinical examination.
+The described symptoms may be associated with common conditions. Further diagnostic evaluation is recommended for a more accurate assessment.
 
 Plan:
-1. Immediate consultation with a physician.
-2. Blood tests and imaging if necessary.
-3. Monitor temperature and pain levels regularly.
+1. Visit a local health center or hospital for examination.
+2. Basic diagnostic tests (e.g., CBC, imaging) may be required based on symptoms.
+3. Follow general advice on hydration, rest, and symptom tracking.
 
-Triage Severity Score: 7/10
+Triage Severity Score: 5/10
 
-One-line health advice: Please seek urgent medical attention if symptoms worsen or do not improve.
+One-line health advice: Please consult a doctor for further evaluation of your symptoms.
 """
 
 @app.route('/report')
@@ -192,7 +181,7 @@ def report():
         keywords = [line.strip().lower() for line in file if line.strip()]
     matches = sum(1 for word in keywords if word in symptoms)
 
-    if matches < 2:
+    if matches < 1:
         return f"""
         <h2>Invalid Symptom Description</h2>
         <p>Your input doesn't seem to describe enough medical symptoms.</p>
@@ -204,37 +193,37 @@ def report():
     prompt = f"""
 You are a medical assistant generating a SOAP (Subjective, Objective, Assessment, Plan) note.
 
-Use only the verified patient data below. Provide a clinically realistic and useful output.
+Please use only the following verified patient details and the symptom description. Do not add or assume any extra symptoms or diagnoses.
 
 Patient Name: {name}
 Date of Birth: {dob}
 Aadhaar: {aadhaar}
 
-Symptoms:
+Symptoms Reported by Patient:
 "{symptoms}"
 
 Instructions:
-- Summarize the patient's complaint in Subjective.
-- Leave Objective blank unless there's medical data.
-- Make an educated clinical Assessment (avoid vague "common condition" remarks).
-- Suggest specific Plan actions.
-- Assign a triage score.
-- Give one-line advice based only on symptoms.
+- Use only the symptoms provided — do not fabricate or modify them.
+- The note should follow the SOAP format:
+  - Subjective: Summarize what the patient described in simple clinical language.
+  - Objective: Leave this section blank unless examination data is provided.
+  - Assessment: Explain what could be the likely causes based only on the given symptoms.
+  - Plan: Recommend reasonable next steps (e.g., rest, hydration, tests, common meds, or doctor visit).
+- Add a triage severity score out of 10 based on urgency.
+- Conclude with a one-line health advice based on the same symptoms.
+
+Make the response realistic, useful, and grounded only in the data provided above.
 """
 
     try:
-        response = openai.chat.completions.create(
-            model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+        response = client.chat.completions.create(
+            model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
             messages=[
-                {"role": "system", "content": "Generate a SOAP note strictly from symptoms."},
                 {"role": "user", "content": prompt}
-            ],
-            max_tokens=1024
+            ]
         )
         soap_note = response.choices[0].message.content.strip()
-
-        if "pain" in soap_note.lower() and "pain" not in symptoms:
-            raise ValueError("Possible hallucination detected in SOAP.")
+        print("🧠 AI SOAP Note:\n", soap_note)
 
     except Exception as e:
         print("AI fallback reason:", str(e))
