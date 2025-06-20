@@ -57,6 +57,24 @@
     </div>
   </div>
 
+  <!-- PDF Download Button -->
+  <button id="download-pdf" class="pdf-icon-btn" title="Download PDF">📥</button>
+
+  <!-- Scripts -->
   <script src="/static/js/report.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    document.getElementById("download-pdf").addEventListener("click", function () {
+      const reportElement = document.querySelector(".report-container");
+      const opt = {
+        margin: 0.4,
+        filename: 'SOAP_Report_{{ name.replace(" ", "_") }}.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(reportElement).save();
+    });
+  </script>
 </body>
 </html>
