@@ -96,6 +96,7 @@ def aadhaar():
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     aadhaar_file.save(filepath)
 
+    # OCR API call
     with open(filepath, 'rb') as f:
         ocr_result = requests.post(
             'https://api.ocr.space/parse/image',
@@ -112,34 +113,44 @@ def aadhaar():
     cleaned_text = clean_ocr_text(raw_text)
     print("🧹 Cleaned OCR Text:\n", cleaned_text)
 
-    aadhaar_match = re.search(r'\b\d{4}\s\d{4}\s\d{4}\b', cleaned_text.replace("\n", " "))
+    # Aadhaar number (match 12-digit group or spaced format)
+    aadhaar_match = re.search(r'\b\d{4}\s\d{4}\s\d{4}\b|\b\d{12}\b', cleaned_text.replace("\n", " "))
+    aadhaar_number = aadhaar_match.group() if aadhaar_match else "Aadhaar Not Detected"
+
+    # DOB in formats: DD/MM/YYYY, YYYY, or 'Year of Birth: 2002'
     dob_match = (
         re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text) or
         re.search(r'Year\s*of\s*Birth\s*[:\s]*((?:19|20)\d{2})', cleaned_text, re.IGNORECASE) or
         re.search(r'\b(19|20)\d{2}\b', cleaned_text)
     )
+    try:
+        dob = dob_match.group(1) if dob_match.lastindex else dob_match.group()
+    except:
+        dob = "DOB Not Detected"
 
-    name_match = None
+    # Name extraction - look for lines that:
+    # - have 2+ words
+    # - no digits or symbols
+    # - aren't keywords like 'aadhaar', 'govt', etc.
+    name = "Name Not Detected"
     for line in cleaned_text.split("\n"):
         line = line.strip()
-        if len(line) < 5 or "aadhaar" in line.lower() or any(char.isdigit() for char in line):
-            continue
-        if re.match(r"^[A-Z][a-z]+(?:\s[A-Z][a-z]+)*$", line) or re.match(r"^[A-Z\s]{8,}$", line):
-            name_match = line.title()
+        if (
+            len(line.split()) >= 2 and
+            not any(x in line.lower() for x in ["aadhaar", "govt", "year", "dob", "issued", "male", "female", "of", "birth"]) and
+            not re.search(r'[^a-zA-Z\s]', line)
+        ):
+            name = line.title()
             break
 
-    extracted_name = name_match if name_match else "Name Not Detected"
-    extracted_dob = dob_match.group(1) if dob_match else "DOB Not Detected"
-    extracted_aadhaar = aadhaar_match.group() if aadhaar_match else "Aadhaar Not Detected"
-
-    print("✅ Extracted Name:", extracted_name)
-    print("✅ Extracted DOB:", extracted_dob)
-    print("✅ Extracted Aadhaar:", extracted_aadhaar)
+    print("✅ Extracted Name:", name)
+    print("✅ Extracted DOB:", dob)
+    print("✅ Extracted Aadhaar:", aadhaar_number)
 
     return redirect(url_for('report',
-        name=extracted_name,
-        dob=extracted_dob,
-        aadhaar=extracted_aadhaar,
+        name=name,
+        dob=dob,
+        aadhaar=aadhaar_number,
         symptoms=session.get("symptoms", "")
     ))
 
