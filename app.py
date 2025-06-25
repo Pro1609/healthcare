@@ -84,7 +84,7 @@ def transcribe_audio_base64():
             "Accept": "application/json"
         }
         params = {
-            "language": "auto"
+            "language": "language"
         }
 
         with open(audio_path, 'rb') as audio_file:
