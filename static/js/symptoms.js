@@ -94,7 +94,7 @@ recordBtn.addEventListener('click', async () => {
     setTimeout(() => {
       mediaRecorder.stop();
       recordBtn.textContent = "🎙️";
-    }, 5000);
+    }, 7000);
   }
 });
 
