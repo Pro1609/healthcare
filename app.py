@@ -59,12 +59,15 @@ def login():
 # ✅ Transcribe audio from base64 and auto-translate to English
 @app.route('/transcribe', methods=['POST'])
 def transcribe_audio_base64():
+
     try:
         data = request.get_json(force=True)
         print("📥 Raw incoming JSON:", data)
         print("🔍 Type of data:", type(data))
 
         audio_base64 = data.get("audio", None)
+        language_code = data.get("language", "en-IN")  # ✅ define it here
+
         if not audio_base64:
             print("❗ No audio data found in request.")
             return jsonify({"error": "No audio data provided"}), 400
