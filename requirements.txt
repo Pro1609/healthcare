@@ -11,5 +11,4 @@ twilio==8.10.0
 together
 assemblyai
 azure-cognitiveservices-speech
-pydub
-ffmpeg-python
+
