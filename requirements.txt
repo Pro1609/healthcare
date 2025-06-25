@@ -9,3 +9,4 @@ openai>=1.0.0
 python-dotenv
 twilio==8.10.0
 together
+assemblyai
