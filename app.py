@@ -7,6 +7,7 @@ from together import Together
 from twilio.rest import Client
 import assemblyai as aai
 from flask import jsonify
+import base64
 
 # Load environment variables
 load_dotenv()
