@@ -150,6 +150,35 @@ button.submit-btn:hover {
   background-color: #9f6dfb;
 }
 
+.voice-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+#recordBtn {
+  font-size: 20px;
+  padding: 6px 10px;
+  background-color: #1f1f1f;
+  color: #c084fc;
+  border: 2px solid #7649e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+#recordBtn:hover {
+  background-color: #292929;
+  transform: scale(1.05);
+}
+
+#recordStatus {
+  font-size: 14px;
+  color: #aaaaaa;
+}
+
+
 /* Responsive Design */
 @media (max-width: 600px) {
   .container {
