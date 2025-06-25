@@ -8,6 +8,7 @@ from twilio.rest import Client
 import assemblyai as aai
 from flask import jsonify
 import base64
+from pydub import AudioSegment  # Make sure this is imported at the top
 
 # Load environment variables
 load_dotenv()
@@ -70,14 +71,26 @@ def transcribe_audio_base64():
             print("❗ No audio data found in request.")
             return jsonify({"error": "No audio data provided"}), 400
 
-        # Step 1: Save audio
-        audio_bytes = base64.b64decode(audio_base64)
-        audio_path = "static/uploads/temp_audio.wav"
-        with open(audio_path, "wb") as f:
-            f.write(audio_bytes)
-        print(f"💾 Audio saved to {audio_path}")
+        # ✅ Step 1: Save and convert audio
+        temp_raw_path = "static/uploads/temp_input.webm"   # Raw input from browser
+        audio_path = "static/uploads/temp_audio.wav"       # Final WAV for Azure
 
-        # Step 2: Azure Speech-to-Text
+        audio_bytes = base64.b64decode(audio_base64)
+        with open(temp_raw_path, "wb") as f:
+            f.write(audio_bytes)
+        print(f"💾 Raw audio saved to {temp_raw_path}")
+
+        # Convert to 16kHz mono PCM WAV for Azure STT
+        try:
+            audio = AudioSegment.from_file(temp_raw_path)
+            audio = audio.set_frame_rate(16000).set_channels(1).set_sample_width(2)
+            audio.export(audio_path, format="wav")
+            print(f"✅ Audio converted and saved to {audio_path}")
+        except Exception as convert_error:
+            print("❌ Error converting audio:", convert_error)
+            return jsonify({"error": "Audio conversion failed"}), 500
+
+        # ✅ Step 2: Azure Speech-to-Text
         stt_url = f"https://{AZURE_SPEECH_REGION}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1"
         headers = {
             "Ocp-Apim-Subscription-Key": AZURE_SPEECH_KEY,
@@ -102,9 +115,9 @@ def transcribe_audio_base64():
 
         print("🗣️ Transcribed:", original_text)
 
-        # Step 3: Translate only if needed
+        # ✅ Step 3: Translate if not English
         if language_code.startswith("en"):
-            translated_text = original_text  # No translation needed
+            translated_text = original_text
         else:
             trans_url = f"{AZURE_TRANSLATOR_ENDPOINT}/translate?api-version=3.0&to=en"
             trans_headers = {
@@ -131,8 +144,6 @@ def transcribe_audio_base64():
     except Exception as e:
         print("❌ Error in transcription/translation:", str(e))
         return jsonify({"error": str(e)}), 500
-
-
 # Symptoms route (no change)
 @app.route('/symptoms', methods=['GET', 'POST'])
 def symptoms():
