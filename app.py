@@ -49,18 +49,15 @@ def login():
 
 # --- Transcribe Audio Route ---
 @app.route('/transcribe-audio', methods=['POST'])
-def transcribe_audio():
+def transcribe_audio_file():
     if 'audio' not in request.files:
         return jsonify({'error': 'No audio file uploaded'}), 400
 
     audio_file = request.files['audio']
-    
-    # Save temp file
     temp_path = os.path.join("static/uploads", audio_file.filename)
     audio_file.save(temp_path)
 
     try:
-        # Setup config (you can customize this)
         config = aai.TranscriptionConfig(speech_model=aai.SpeechModel.best)
         transcriber = aai.Transcriber(config=config)
         transcript = transcriber.transcribe(temp_path)
@@ -69,30 +66,37 @@ def transcribe_audio():
             return jsonify({'error': transcript.error}), 500
 
         return jsonify({'text': transcript.text})
-
     except Exception as e:
-        print("Transcription error:", str(e))
+        print("Transcription error (file):", str(e))
         return jsonify({'error': 'Failed to transcribe'}), 500
 
+
 @app.route('/transcribe', methods=['POST'])
-def transcribe_audio():
+def transcribe_audio_base64():
     data = request.get_json()
     audio_base64 = data.get("audio")
 
     if not audio_base64:
         return jsonify({"error": "No audio data"}), 400
 
-    audio_bytes = base64.b64decode(audio_base64)
-    with open("temp_audio.wav", "wb") as f:
-        f.write(audio_bytes)
-
     try:
-        transcript = aai.Transcriber().transcribe("temp_audio.wav")
+        audio_bytes = base64.b64decode(audio_base64)
+        temp_path = "static/uploads/temp_audio.wav"
+        with open(temp_path, "wb") as f:
+            f.write(audio_bytes)
+
+        config = aai.TranscriptionConfig(speech_model=aai.SpeechModel.best)
+        transcriber = aai.Transcriber(config=config)
+        transcript = transcriber.transcribe(temp_path)
+
         if transcript.status == "error":
             return jsonify({"error": transcript.error}), 500
+
         return jsonify({"text": transcript.text})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print("Transcription error (base64):", str(e))
+        return jsonify({"error": "Failed to transcribe"}), 500
+
 
 @app.route('/symptoms', methods=['GET', 'POST'])
 def symptoms():
