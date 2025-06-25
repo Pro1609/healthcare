@@ -44,3 +44,56 @@ document.addEventListener('DOMContentLoaded', function () {
   // Initialize slider background
   severitySlider.dispatchEvent(new Event('input'));
 });
+let mediaRecorder;
+let audioChunks = [];
+
+const recordBtn = document.getElementById('recordBtn');
+const recordStatus = document.getElementById('recordStatus');
+const symptomsInput = document.getElementById('symptoms');
+
+recordBtn.addEventListener('click', async () => {
+  if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    
+    audioChunks = [];
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+
+    mediaRecorder.onstop = async () => {
+      const blob = new Blob(audioChunks, { type: 'audio/wav' });
+      const base64 = await blobToBase64(blob);
+
+      recordStatus.textContent = "Transcribing...";
+      const response = await fetch('/transcribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ audio: base64 })
+      });
+
+      const data = await response.json();
+      if (data.text) {
+        symptomsInput.value = data.text;
+        recordStatus.textContent = "✔️ Transcribed! You can edit it.";
+      } else {
+        recordStatus.textContent = "❌ Transcription failed";
+      }
+    };
+
+    mediaRecorder.start();
+    recordStatus.textContent = "Recording...";
+    recordBtn.textContent = "⏹️";
+
+    setTimeout(() => {
+      mediaRecorder.stop();
+      recordBtn.textContent = "🎙️";
+    }, 5000); // 5 seconds max
+  }
+});
+
+function blobToBase64(blob) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+    reader.readAsDataURL(blob);
+  });
+}
