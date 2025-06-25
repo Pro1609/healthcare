@@ -13,4 +13,3 @@ assemblyai
 azure-cognitiveservices-speech
 pydub
 ffmpeg-python
-pyaudioop
