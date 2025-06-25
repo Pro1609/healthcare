@@ -22,6 +22,14 @@ TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_VERIFY_SERVICE_SID = os.getenv("TWILIO_VERIFY_SERVICE_SID")
 
+AZURE_SPEECH_KEY = os.getenv("AZURE_SPEECH_KEY")
+AZURE_SPEECH_REGION = os.getenv("AZURE_SPEECH_REGION")
+AZURE_SPEECH_ENDPOINT = os.getenv("AZURE_SPEECH_ENDPOINT")
+
+AZURE_TRANSLATOR_KEY = os.getenv("AZURE_TRANSLATOR_KEY")
+AZURE_TRANSLATOR_REGION = os.getenv("AZURE_TRANSLATOR_REGION")
+AZURE_TRANSLATOR_ENDPOINT = os.getenv("AZURE_TRANSLATOR_ENDPOINT")
+
 # Load AssemblyAI API key from .env
 aai.settings.api_key = os.getenv("ASSEMBLYAI_API_KEY")
 
@@ -48,57 +56,67 @@ def home():
 def login():
     return render_template("login.html")
 
-# --- Transcribe Audio Route ---
-@app.route('/transcribe-audio', methods=['POST'])
-def transcribe_audio_file():
-    if 'audio' not in request.files:
-        return jsonify({'error': 'No audio file uploaded'}), 400
-
-    audio_file = request.files['audio']
-    temp_path = os.path.join("static/uploads", audio_file.filename)
-    audio_file.save(temp_path)
-
-    try:
-        config = aai.TranscriptionConfig(speech_model=aai.SpeechModel.best)
-        transcriber = aai.Transcriber(config=config)
-        transcript = transcriber.transcribe(temp_path)
-
-        if transcript.status == "error":
-            return jsonify({'error': transcript.error}), 500
-
-        return jsonify({'text': transcript.text})
-    except Exception as e:
-        print("Transcription error (file):", str(e))
-        return jsonify({'error': 'Failed to transcribe'}), 500
-
-
+# ✅ Transcribe audio from base64 and auto-translate to English
 @app.route('/transcribe', methods=['POST'])
 def transcribe_audio_base64():
     data = request.get_json()
     audio_base64 = data.get("audio")
 
     if not audio_base64:
-        return jsonify({"error": "No audio data"}), 400
+        return jsonify({"error": "No audio data provided"}), 400
 
     try:
         audio_bytes = base64.b64decode(audio_base64)
-        temp_path = "static/uploads/temp_audio.wav"
-        with open(temp_path, "wb") as f:
+        audio_path = "static/uploads/temp_audio.wav"
+        with open(audio_path, "wb") as f:
             f.write(audio_bytes)
 
-        config = aai.TranscriptionConfig(speech_model=aai.SpeechModel.best)
-        transcriber = aai.Transcriber(config=config)
-        transcript = transcriber.transcribe(temp_path)
+        # 🔊 Step 1: Speech to Text using Azure
+        stt_url = f"https://{AZURE_SPEECH_REGION}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1"
+        headers = {
+            "Ocp-Apim-Subscription-Key": AZURE_SPEECH_KEY,
+            "Content-Type": "audio/wav",
+            "Accept": "application/json"
+        }
+        params = {
+            "language": "auto"
+        }
 
-        if transcript.status == "error":
-            return jsonify({"error": transcript.error}), 500
+        with open(audio_path, 'rb') as audio_file:
+            stt_response = requests.post(stt_url, headers=headers, params=params, data=audio_file)
 
-        return jsonify({"text": transcript.text})
+        stt_data = stt_response.json()
+        original_text = stt_data.get("DisplayText", "")
+
+        if not original_text:
+            return jsonify({"error": "Speech recognition failed"}), 500
+
+        print("🗣️ Transcribed:", original_text)
+
+        # 🌐 Step 2: Translate text to English
+        trans_url = f"{AZURE_TRANSLATOR_ENDPOINT}/translate?api-version=3.0&to=en"
+        trans_headers = {
+            "Ocp-Apim-Subscription-Key": AZURE_TRANSLATOR_KEY,
+            "Ocp-Apim-Subscription-Region": AZURE_TRANSLATOR_REGION,
+            "Content-Type": "application/json"
+        }
+        trans_body = [{"Text": original_text}]
+        trans_response = requests.post(trans_url, headers=trans_headers, json=trans_body)
+        trans_data = trans_response.json()
+
+        translated_text = trans_data[0]["translations"][0]["text"]
+        print("🌐 Translated:", translated_text)
+
+        return jsonify({
+            "original_text": original_text,
+            "translated_text": translated_text
+        })
+
     except Exception as e:
-        print("Transcription error (base64):", str(e))
-        return jsonify({"error": "Failed to transcribe"}), 500
+        print("❌ Error in transcription/translation:", str(e))
+        return jsonify({"error": str(e)}), 500
 
-
+# Symptoms route (no change)
 @app.route('/symptoms', methods=['GET', 'POST'])
 def symptoms():
     if request.method == 'POST':
