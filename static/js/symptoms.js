@@ -36,14 +36,16 @@ document.addEventListener('DOMContentLoaded', function () {
   // Helper to determine color by severity
   function getSeverityColor(val) {
     const score = parseInt(val);
-    if (score <= 3) return '#28a745';
-    if (score <= 6) return '#ffc107';
-    return '#dc3545';
+    if (score <= 3) return '#28a745';    // Green
+    if (score <= 6) return '#ffc107';    // Yellow
+    return '#dc3545';                    // Red
   }
 
   // Initialize slider background
   severitySlider.dispatchEvent(new Event('input'));
 });
+
+// 🎙️ Voice recording and transcription
 let mediaRecorder;
 let audioChunks = [];
 
@@ -55,7 +57,7 @@ recordBtn.addEventListener('click', async () => {
   if (!mediaRecorder || mediaRecorder.state === 'inactive') {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream);
-    
+
     audioChunks = [];
     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
 
@@ -63,7 +65,8 @@ recordBtn.addEventListener('click', async () => {
       const blob = new Blob(audioChunks, { type: 'audio/wav' });
       const base64 = await blobToBase64(blob);
 
-      recordStatus.textContent = "Transcribing...";
+      recordStatus.textContent = "Transcribing & Translating...";
+
       const response = await fetch('/transcribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -71,22 +74,25 @@ recordBtn.addEventListener('click', async () => {
       });
 
       const data = await response.json();
-      if (data.text) {
-        symptomsInput.value = data.text;
-        recordStatus.textContent = "✔️ Transcribed! You can edit it.";
+      if (data.translated_text) {
+        symptomsInput.value = data.translated_text;
+        recordStatus.textContent = "✔️ Transcribed & Translated!";
+      } else if (data.original_text) {
+        symptomsInput.value = data.original_text;
+        recordStatus.textContent = "⚠️ Translation failed. Showing raw transcription.";
       } else {
         recordStatus.textContent = "❌ Transcription failed";
       }
     };
 
     mediaRecorder.start();
-    recordStatus.textContent = "Recording...";
+    recordStatus.textContent = "🎙️ Recording...";
     recordBtn.textContent = "⏹️";
 
     setTimeout(() => {
       mediaRecorder.stop();
       recordBtn.textContent = "🎙️";
-    }, 5000); // 5 seconds max
+    }, 5000); // Record for 5 seconds
   }
 });
 
