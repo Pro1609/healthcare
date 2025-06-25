@@ -33,15 +33,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  // Helper to determine color by severity
   function getSeverityColor(val) {
     const score = parseInt(val);
-    if (score <= 3) return '#28a745';    // Green
-    if (score <= 6) return '#ffc107';    // Yellow
-    return '#dc3545';                    // Red
+    if (score <= 3) return '#28a745';
+    if (score <= 6) return '#ffc107';
+    return '#dc3545';
   }
 
-  // Initialize slider background
   severitySlider.dispatchEvent(new Event('input'));
 });
 
@@ -52,6 +50,7 @@ let audioChunks = [];
 const recordBtn = document.getElementById('recordBtn');
 const recordStatus = document.getElementById('recordStatus');
 const symptomsInput = document.getElementById('symptoms');
+const languageSelect = document.getElementById('languageSelect'); // ✅ Added line
 
 recordBtn.addEventListener('click', async () => {
   if (!mediaRecorder || mediaRecorder.state === 'inactive') {
@@ -70,7 +69,10 @@ recordBtn.addEventListener('click', async () => {
       const response = await fetch('/transcribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ audio: base64 })
+        body: JSON.stringify({
+          audio: base64,
+          language: languageSelect.value  // ✅ Send selected language
+        })
       });
 
       const data = await response.json();
@@ -92,7 +94,7 @@ recordBtn.addEventListener('click', async () => {
     setTimeout(() => {
       mediaRecorder.stop();
       recordBtn.textContent = "🎙️";
-    }, 5000); // Record for 5 seconds
+    }, 5000);
   }
 });
 
