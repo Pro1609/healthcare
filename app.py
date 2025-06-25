@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from together import Together
 from twilio.rest import Client
 import assemblyai as aai
+from flask import jsonify
 
 # Load environment variables
 load_dotenv()
@@ -72,6 +73,26 @@ def transcribe_audio():
     except Exception as e:
         print("Transcription error:", str(e))
         return jsonify({'error': 'Failed to transcribe'}), 500
+
+@app.route('/transcribe', methods=['POST'])
+def transcribe_audio():
+    data = request.get_json()
+    audio_base64 = data.get("audio")
+
+    if not audio_base64:
+        return jsonify({"error": "No audio data"}), 400
+
+    audio_bytes = base64.b64decode(audio_base64)
+    with open("temp_audio.wav", "wb") as f:
+        f.write(audio_bytes)
+
+    try:
+        transcript = aai.Transcriber().transcribe("temp_audio.wav")
+        if transcript.status == "error":
+            return jsonify({"error": transcript.error}), 500
+        return jsonify({"text": transcript.text})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/symptoms', methods=['GET', 'POST'])
 def symptoms():
