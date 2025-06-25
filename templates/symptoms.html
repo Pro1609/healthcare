@@ -25,29 +25,37 @@
       <h2>Describe Your Symptoms</h2>
       <form id="symptoms-form" action="/symptoms" method="POST">
         <label for="symptoms">Enter your symptoms:</label>
+    
+    <!-- Voice Input Button & Status -->
+        <div class="voice-input">
+        <button type="button" id="recordBtn" title="Record your symptoms">🎙️</button>
+        <span id="recordStatus">Click to start recording</span>
+        </div>
+
         <textarea
-          id="symptoms"
-          name="symptoms"
-          placeholder="e.g. Fever, cough, fatigue..."
-          required
+        id="symptoms"
+        name="symptoms"
+        placeholder="e.g. Fever, cough, fatigue..."
+        required
         ></textarea>
 
-        <label for="severity">How severe is it?</label>
-        <div class="severity-bar">
-          <input
-            type="range"
-            id="severity"
-            name="severity"
-            min="0"
-            max="10"
-            value="5"
-          />
-          <span id="severity-value">5</span>/10
-        </div>
+       <label for="severity">How severe is it?</label>
+      <div class="severity-bar">
+        <input
+          type="range"
+          id="severity"
+          name="severity"
+          min="0"
+          max="10"
+          value="5"
+        />
+        <span id="severity-value">5</span>/10
+      </div>
 
         <button type="submit" class="submit-btn">Continue</button>
       </form>
     </div>
+
   </div>
 
   <script src="/static/js/symptoms.js"></script>
