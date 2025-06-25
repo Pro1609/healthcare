@@ -59,27 +59,25 @@ def login():
 # ✅ Transcribe audio from base64 and auto-translate to English
 @app.route('/transcribe', methods=['POST'])
 def transcribe_audio_base64():
-
     try:
         data = request.get_json(force=True)
         print("📥 Raw incoming JSON:", data)
-        print("🔍 Type of data:", type(data))
 
-        audio_base64 = data.get("audio", None)
-        language_code = data.get("language", "en-IN")  # ✅ define it here
+        audio_base64 = data.get("audio")
+        language_code = data.get("language", "en-IN")
 
         if not audio_base64:
             print("❗ No audio data found in request.")
             return jsonify({"error": "No audio data provided"}), 400
 
-        # Step 1: Decode and save audio
+        # Step 1: Save audio
         audio_bytes = base64.b64decode(audio_base64)
         audio_path = "static/uploads/temp_audio.wav"
         with open(audio_path, "wb") as f:
             f.write(audio_bytes)
         print(f"💾 Audio saved to {audio_path}")
 
-        # Step 2: Transcribe audio with Azure
+        # Step 2: Azure Speech-to-Text
         stt_url = f"https://{AZURE_SPEECH_REGION}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1"
         headers = {
             "Ocp-Apim-Subscription-Key": AZURE_SPEECH_KEY,
@@ -92,34 +90,38 @@ def transcribe_audio_base64():
 
         with open(audio_path, 'rb') as audio_file:
             stt_response = requests.post(stt_url, headers=headers, params=params, data=audio_file)
-        
+
         print("🔁 Azure STT Status:", stt_response.status_code)
         print("🔊 Azure STT Raw Response:", stt_response.text)
 
         stt_data = stt_response.json()
         original_text = stt_data.get("DisplayText", "")
+
         if not original_text:
-            print("⚠️ Azure STT failed or empty.")
-            return jsonify({"error": "Speech recognition failed"}), 500
+            return jsonify({"error": "Speech recognition returned empty text"}), 500
 
         print("🗣️ Transcribed:", original_text)
 
-        # Step 3: Translate to English using Azure
-        trans_url = f"{AZURE_TRANSLATOR_ENDPOINT}/translate?api-version=3.0&to=en"
-        trans_headers = {
-            "Ocp-Apim-Subscription-Key": AZURE_TRANSLATOR_KEY,
-            "Ocp-Apim-Subscription-Region": AZURE_TRANSLATOR_REGION,
-            "Content-Type": "application/json"
-        }
-        trans_body = [{"Text": original_text}]
-        trans_response = requests.post(trans_url, headers=trans_headers, json=trans_body)
+        # Step 3: Translate only if needed
+        if language_code.startswith("en"):
+            translated_text = original_text  # No translation needed
+        else:
+            trans_url = f"{AZURE_TRANSLATOR_ENDPOINT}/translate?api-version=3.0&to=en"
+            trans_headers = {
+                "Ocp-Apim-Subscription-Key": AZURE_TRANSLATOR_KEY,
+                "Ocp-Apim-Subscription-Region": AZURE_TRANSLATOR_REGION,
+                "Content-Type": "application/json"
+            }
+            trans_body = [{"Text": original_text}]
+            trans_response = requests.post(trans_url, headers=trans_headers, json=trans_body)
 
-        print("🌍 Translator Status:", trans_response.status_code)
-        print("🌍 Translator Raw Response:", trans_response.text)
+            print("🌍 Translator Status:", trans_response.status_code)
+            print("🌍 Translator Raw Response:", trans_response.text)
 
-        trans_data = trans_response.json()
-        translated_text = trans_data[0]["translations"][0]["text"]
-        print("🌐 Translated:", translated_text)
+            trans_data = trans_response.json()
+            translated_text = trans_data[0]["translations"][0]["text"]
+
+        print("🌐 Final Output:", translated_text)
 
         return jsonify({
             "original_text": original_text,
