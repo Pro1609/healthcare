@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from dotenv import load_dotenv
 from together import Together
 from twilio.rest import Client
+import assemblyai as aai
 
 # Load environment variables
 load_dotenv()
@@ -18,6 +19,9 @@ OCR_API_KEY = os.getenv("OCR_API_KEY")
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_VERIFY_SERVICE_SID = os.getenv("TWILIO_VERIFY_SERVICE_SID")
+
+# Load AssemblyAI API key from .env
+aai.settings.api_key = os.getenv("ASSEMBLYAI_API_KEY")
 
 # AI Client
 client = Together()
@@ -41,6 +45,33 @@ def home():
 @app.route('/login')
 def login():
     return render_template("login.html")
+
+# --- Transcribe Audio Route ---
+@app.route('/transcribe-audio', methods=['POST'])
+def transcribe_audio():
+    if 'audio' not in request.files:
+        return jsonify({'error': 'No audio file uploaded'}), 400
+
+    audio_file = request.files['audio']
+    
+    # Save temp file
+    temp_path = os.path.join("static/uploads", audio_file.filename)
+    audio_file.save(temp_path)
+
+    try:
+        # Setup config (you can customize this)
+        config = aai.TranscriptionConfig(speech_model=aai.SpeechModel.best)
+        transcriber = aai.Transcriber(config=config)
+        transcript = transcriber.transcribe(temp_path)
+
+        if transcript.status == "error":
+            return jsonify({'error': transcript.error}), 500
+
+        return jsonify({'text': transcript.text})
+
+    except Exception as e:
+        print("Transcription error:", str(e))
+        return jsonify({'error': 'Failed to transcribe'}), 500
 
 @app.route('/symptoms', methods=['GET', 'POST'])
 def symptoms():
