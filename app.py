@@ -190,72 +190,97 @@ def aadhaar():
     aadhaar_file = request.files.get('aadhaar')
 
     if not aadhaar_file or aadhaar_file.filename == '':
+        print("❌ No file uploaded.")
         return "<h2>No Aadhaar file uploaded. Please try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
 
     if not aadhaar_file.filename.lower().endswith('.pdf'):
+        print(f"⚠️ Invalid file format: {aadhaar_file.filename}")
         return "<h2>Only PDF format is currently supported.</h2><a href='/aadhaar'>🡸 Try Again</a>"
 
     filename = aadhaar_file.filename.replace(" ", "_")
     filepath = os.path.join(UPLOAD_FOLDER, filename)
-    aadhaar_file.save(filepath)
-
-    # OCR API call
-    with open(filepath, 'rb') as f:
-        ocr_result = requests.post(
-            'https://api.ocr.space/parse/image',
-            files={"filename": f},
-            data={"apikey": OCR_API_KEY, "isOverlayRequired": False, "OCREngine": 2, "scale": True}
-        )
 
     try:
-        raw_text = ocr_result.json()['ParsedResults'][0]['ParsedText']
-    except (KeyError, IndexError):
+        aadhaar_file.save(filepath)
+        print(f"💾 File saved to {filepath}")
+    except Exception as e:
+        print("❌ File saving error:", str(e))
+        return "<h2>Failed to save the file. Please try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
+
+    try:
+        # OCR API call
+        with open(filepath, 'rb') as f:
+            ocr_result = requests.post(
+                'https://api.ocr.space/parse/image',
+                files={"filename": f},
+                data={"apikey": OCR_API_KEY, "isOverlayRequired": False, "OCREngine": 2, "scale": True}
+            )
+        print("📡 OCR request sent.")
+        ocr_json = ocr_result.json()
+        print("📥 OCR raw response received.")
+
+        raw_text = ocr_json['ParsedResults'][0]['ParsedText']
+    except Exception as e:
+        print("❌ OCR processing error:", str(e))
         return "<h2>OCR failed. Please try with a clearer Aadhaar PDF.</h2><a href='/aadhaar'>🡸 Try Again</a>"
 
     print("🔍 Raw OCR Text:\n", raw_text)
-    cleaned_text = clean_ocr_text(raw_text)
-    print("🧹 Cleaned OCR Text:\n", cleaned_text)
 
-    # Aadhaar number (match 12-digit group or spaced format)
-    aadhaar_match = re.search(r'\b\d{4}\s\d{4}\s\d{4}\b|\b\d{12}\b', cleaned_text.replace("\n", " "))
-    aadhaar_number = aadhaar_match.group() if aadhaar_match else "Aadhaar Not Detected"
-
-    # DOB in formats: DD/MM/YYYY, YYYY, or 'Year of Birth: 2002'
-    dob_match = (
-        re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text) or
-        re.search(r'Year\s*of\s*Birth\s*[:\s]*((?:19|20)\d{2})', cleaned_text, re.IGNORECASE) or
-        re.search(r'\b(19|20)\d{2}\b', cleaned_text)
-    )
     try:
-        dob = dob_match.group(1) if dob_match.lastindex else dob_match.group()
-    except:
+        cleaned_text = clean_ocr_text(raw_text)
+        print("🧹 Cleaned OCR Text:\n", cleaned_text)
+    except Exception as e:
+        print("❌ OCR cleaning error:", str(e))
+        return "<h2>Text cleanup failed. Please try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
+
+    try:
+        aadhaar_match = re.search(r'\b\d{4}\s\d{4}\s\d{4}\b|\b\d{12}\b', cleaned_text.replace("\n", " "))
+        aadhaar_number = aadhaar_match.group() if aadhaar_match else "Aadhaar Not Detected"
+    except Exception as e:
+        print("❌ Aadhaar number extraction error:", str(e))
+        aadhaar_number = "Aadhaar Not Detected"
+
+    try:
+        dob_match = (
+            re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text) or
+            re.search(r'Year\s*of\s*Birth\s*[:\s]*((?:19|20)\d{2})', cleaned_text, re.IGNORECASE) or
+            re.search(r'\b(19|20)\d{2}\b', cleaned_text)
+        )
+        dob = dob_match.group(1) if dob_match and dob_match.lastindex else dob_match.group()
+    except Exception as e:
+        print("❌ DOB extraction error:", str(e))
         dob = "DOB Not Detected"
 
-    # Name extraction - look for lines that:
-    # - have 2+ words
-    # - no digits or symbols
-    # - aren't keywords like 'aadhaar', 'govt', etc.
-    name = "Name Not Detected"
-    for line in cleaned_text.split("\n"):
-        line = line.strip()
-        if (
-            len(line.split()) >= 2 and
-            not any(x in line.lower() for x in ["aadhaar", "govt", "year", "dob", "issued", "male", "female", "of", "birth"]) and
-            not re.search(r'[^a-zA-Z\s]', line)
-        ):
-            name = line.title()
-            break
+    try:
+        name = "Name Not Detected"
+        for line in cleaned_text.split("\n"):
+            line = line.strip()
+            if (
+                len(line.split()) >= 2 and
+                not any(x in line.lower() for x in ["aadhaar", "govt", "year", "dob", "issued", "male", "female", "of", "birth"]) and
+                not re.search(r'[^a-zA-Z\s]', line)
+            ):
+                name = line.title()
+                break
+    except Exception as e:
+        print("❌ Name extraction error:", str(e))
+        name = "Name Not Detected"
 
     print("✅ Extracted Name:", name)
     print("✅ Extracted DOB:", dob)
     print("✅ Extracted Aadhaar:", aadhaar_number)
 
-    return redirect(url_for('report',
-        name=name,
-        dob=dob,
-        aadhaar=aadhaar_number,
-        symptoms=session.get("symptoms", "")
-    ))
+    try:
+        return redirect(url_for('report',
+            name=name,
+            dob=dob,
+            aadhaar=aadhaar_number,
+            symptoms=session.get("symptoms", "")
+        ))
+    except Exception as e:
+        print("❌ Redirect error:", str(e))
+        return "<h2>Something went wrong after processing. Please try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
+
 
 def generate_soap_strict(symptoms, name, dob, aadhaar):
     return f"""
