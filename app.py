@@ -10,6 +10,7 @@ from flask import jsonify
 import base64
 import subprocess
 import uuid
+import time
 
 # Load environment variables
 load_dotenv()
@@ -31,6 +32,9 @@ AZURE_SPEECH_ENDPOINT = os.getenv("AZURE_SPEECH_ENDPOINT")
 AZURE_TRANSLATOR_KEY = os.getenv("AZURE_TRANSLATOR_KEY")
 AZURE_TRANSLATOR_REGION = os.getenv("AZURE_TRANSLATOR_REGION")
 AZURE_TRANSLATOR_ENDPOINT = os.getenv("AZURE_TRANSLATOR_ENDPOINT")
+
+AZURE_VISION_KEY = os.getenv("AZURE_VISION_KEY")
+AZURE_VISION_ENDPOINT = os.getenv("AZURE_VISION_ENDPOINT")
 
 # Load AssemblyAI API key from .env
 aai.settings.api_key = os.getenv("ASSEMBLYAI_API_KEY")
@@ -208,23 +212,47 @@ def aadhaar():
         return "<h2>Failed to save the file. Please try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
 
     try:
-        # OCR API call
+        # 🔍 Submit OCR to Azure
+        ocr_url = f"{AZURE_VISION_ENDPOINT}/vision/v3.2/read/analyze"
+        headers = {
+            "Ocp-Apim-Subscription-Key": AZURE_VISION_KEY,
+            "Content-Type": "application/pdf"
+        }
+
         with open(filepath, 'rb') as f:
-            ocr_result = requests.post(
-                'https://api.ocr.space/parse/image',
-                files={"filename": f},
-                data={"apikey": OCR_API_KEY, "isOverlayRequired": False, "OCREngine": 2, "scale": True}
-            )
-        print("📡 OCR request sent.")
-        ocr_json = ocr_result.json()
-        print("📥 OCR raw response received.")
+            ocr_response = requests.post(ocr_url, headers=headers, data=f)
 
-        raw_text = ocr_json['ParsedResults'][0]['ParsedText']
+        if ocr_response.status_code != 202:
+            print("❌ OCR API failed:", ocr_response.text)
+            return "<h2>OCR failed. Please try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
+
+        # 🕒 Poll the operation-location
+        operation_url = ocr_response.headers['Operation-Location']
+        print("📡 OCR request submitted. Polling:", operation_url)
+
+        for attempt in range(10):
+            result_response = requests.get(operation_url, headers={"Ocp-Apim-Subscription-Key": AZURE_VISION_KEY})
+            result_json = result_response.json()
+
+            status = result_json.get("status", "")
+            if status == "succeeded":
+                break
+            elif status == "failed":
+                print("❌ OCR processing failed.")
+                return "<h2>OCR failed. Try with a clearer Aadhaar PDF.</h2><a href='/aadhaar'>🡸 Try Again</a>"
+            time.sleep(2)
+
+        # 📄 Extract text
+        raw_text = ""
+        for line in result_json["analyzeResult"]["readResults"]:
+            for l in line["lines"]:
+                raw_text += l["text"] + "\n"
+
+        print("🔍 Raw OCR Text:\n", raw_text)
+
     except Exception as e:
-        print("❌ OCR processing error:", str(e))
-        return "<h2>OCR failed. Please try with a clearer Aadhaar PDF.</h2><a href='/aadhaar'>🡸 Try Again</a>"
-
-    print("🔍 Raw OCR Text:\n", raw_text)
+        print("❌ OCR error:", str(e))
+        return "<h2>OCR failed. Please try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
 
     try:
         cleaned_text = clean_ocr_text(raw_text)
@@ -280,7 +308,6 @@ def aadhaar():
     except Exception as e:
         print("❌ Redirect error:", str(e))
         return "<h2>Something went wrong after processing. Please try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
-
 
 def generate_soap_strict(symptoms, name, dob, aadhaar):
     return f"""
