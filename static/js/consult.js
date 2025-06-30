@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const statusEl = document.getElementById("status");
   const hospitalListEl = document.getElementById("hospitalList");
+  const MAX_HOSPITALS = 9;
 
   // Display an error message
   function showError(message) {
@@ -17,9 +18,12 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    statusEl.textContent = `Found ${hospitals.length} hospital(s) within 10 km:`;
+    // Enforce max 9 hospitals
+    const limitedHospitals = hospitals.slice(0, MAX_HOSPITALS);
 
-    hospitals.forEach(hospital => {
+    statusEl.textContent = `Showing ${limitedHospitals.length} hospital(s) near you:`;
+
+    limitedHospitals.forEach(hospital => {
       const name = hospital.poi?.name || "Unnamed Hospital";
       const address = hospital.address?.freeformAddress || "N/A";
       const distance = hospital.dist ? `${(hospital.dist / 1000).toFixed(2)} km` : "N/A";
