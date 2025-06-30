@@ -11,7 +11,7 @@ import base64
 import subprocess
 import uuid
 import time
-
+import math
 # Load environment variables
 load_dotenv()
 
@@ -56,6 +56,25 @@ def image_to_bytes(img):
 def clean_ocr_text(text):
     lines = text.split("\n")
     return "\n".join(line for line in lines if all(word not in line.lower() for word in unwanted))
+
+# Dummy hospital list (fake data)
+hospitals_data = [
+    {"name": "Sundarpur Health Center", "lat": 20.294, "lon": 85.825, "address": "Sundarpur, Bhubaneswar"},
+    {"name": "CarePlus Clinic", "lat": 20.299, "lon": 85.820, "address": "Acharya Vihar, Bhubaneswar"},
+    {"name": "Sunshine Hospital", "lat": 20.305, "lon": 85.835, "address": "Sahid Nagar, Bhubaneswar"},
+    {"name": "Janata Medical", "lat": 20.280, "lon": 85.830, "address": "Baramunda, Bhubaneswar"},
+    {"name": "Lifeline Diagnostics", "lat": 20.275, "lon": 85.815, "address": "Khandagiri, Bhubaneswar"}
+]
+
+# Distance formula (Haversine)
+def haversine(lat1, lon1, lat2, lon2):
+    R = 6371  # km
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+
+    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+    return round(R * (2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))), 2)
 
 
 
@@ -404,6 +423,27 @@ def consult_choice():
             return redirect(url_for('thankyou'))
     return render_template("consultchoice.html")
 
+@app.route('/consult', methods=['GET', 'POST'])
+def consult():
+    if request.method == 'POST':
+        try:
+            data = request.get_json()
+            user_lat = float(data['lat'])
+            user_lon = float(data['lon'])
 
+            nearby = []
+            for hosp in hospitals_data:
+                dist = haversine(user_lat, user_lon, hosp['lat'], hosp['lon'])
+                if dist <= 10:
+                    hosp_copy = hosp.copy()
+                    hosp_copy['distance'] = dist
+                    nearby.append(hosp_copy)
+
+            return jsonify({"hospitals": nearby})
+        except Exception as e:
+            print("❌ Location processing error:", str(e))
+            return jsonify({"hospitals": []})
+
+    return render_template("consult.html")
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
