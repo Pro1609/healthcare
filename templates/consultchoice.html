@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consult Choice</title>
+  <link rel="stylesheet" href="/static/css/consultchoice.css" />
+</head>
+<body>
+  <div class="consult-choice-container">
+    <!-- Step Bar -->
+    <div class="stepbar">
+      <div>1</div>
+      <div>2</div>
+      <div>3</div>
+      <div>4</div>
+      <div class="active">5</div>
+      <div>6</div>
+      <div>7</div>
+    </div>
+
+    <div class="choice-box">
+      <h2>Would you like to consult a doctor now?</h2>
+      <form method="POST">
+        <div class="button-group">
+          <button type="submit" name="choice" value="yes" class="yes-btn">Yes</button>
+          <button type="submit" name="choice" value="no" class="no-btn">No</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script src="/static/js/consultchoice.js"></script>
+</body>
+</html>
