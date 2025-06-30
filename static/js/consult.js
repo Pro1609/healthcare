@@ -1,54 +1,69 @@
 document.addEventListener("DOMContentLoaded", () => {
   const statusEl = document.getElementById("status");
-  const hospitalList = document.getElementById("hospitalList");
+  const hospitalListEl = document.getElementById("hospitalList");
 
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(success, error);
-  } else {
-    statusEl.textContent = "Geolocation not supported.";
+  function showError(message) {
+    statusEl.textContent = message;
+    hospitalListEl.innerHTML = "";
   }
 
-  function success(position) {
-    const lat = position.coords.latitude;
-    const lon = position.coords.longitude;
+  function displayHospitals(hospitals) {
+    hospitalListEl.innerHTML = "";
+    if (!hospitals || hospitals.length === 0) {
+      showError("No hospitals found nearby.");
+      return;
+    }
 
-    statusEl.textContent = "Location acquired. Searching for hospitals...";
+    hospitals.forEach(hospital => {
+      const card = document.createElement("div");
+      card.className = "hospital-card";
+
+      const inner = document.createElement("div");
+      inner.className = "hospital-inner";
+
+      inner.innerHTML = `
+        <h3>${hospital.poi?.name || "Unnamed Hospital"}</h3>
+        <p><strong>Address:</strong> ${hospital.address?.freeformAddress || "N/A"}</p>
+        <p><strong>Distance:</strong> ${(hospital.dist / 1000).toFixed(2)} km</p>
+      `;
+
+      card.appendChild(inner);
+      hospitalListEl.appendChild(card);
+    });
+
+    statusEl.textContent = "Hospitals within 10 km:";
+  }
+
+  function fetchHospitals(lat, lon) {
+    statusEl.textContent = "Fetching nearby hospitals...";
 
     fetch("/consult", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({ lat, lon }),
+      body: JSON.stringify({ lat, lon })
     })
-    .then((res) => res.json())
-    .then((data) => {
-      if (!data.hospitals || data.hospitals.length === 0) {
-        hospitalList.innerHTML = "<p>No hospitals found nearby.</p>";
-        return;
-      }
-
-      hospitalList.innerHTML = "";
-      data.hospitals.forEach((hosp) => {
-        const box = document.createElement("div");
-        box.className = "hospital-card";
-        box.innerHTML = `
-          <div class="hospital-inner">
-            <h3>${hosp.name}</h3>
-            <p><strong>Address:</strong> ${hosp.address}</p>
-            <p><strong>Distance:</strong> ${hosp.distance.toFixed(2)} km</p>
-          </div>
-        `;
-        hospitalList.appendChild(box);
-      });
-    })
-    .catch((err) => {
+    .then(res => res.json())
+    .then(data => displayHospitals(data.results))
+    .catch(err => {
       console.error("❌ Fetch error:", err);
-      statusEl.textContent = "Error fetching hospital data.";
+      showError("Error fetching hospital data.");
     });
   }
 
-  function error(err) {
-    statusEl.textContent = "Permission denied or location unavailable.";
+  if ("geolocation" in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const { latitude, longitude } = pos.coords;
+        fetchHospitals(latitude, longitude);
+      },
+      err => {
+        console.error("❌ Location error:", err);
+        showError("Location access denied or unavailable.");
+      }
+    );
+  } else {
+    showError("Geolocation not supported by your browser.");
   }
 });
