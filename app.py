@@ -219,7 +219,7 @@ def aadhaar():
 
     ext = aadhaar_file.filename.lower().split('.')[-1]
     filename = aadhaar_file.filename.replace(" ", "_")
-    filepath = os.path.join("uploads", filename)
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
 
     try:
         aadhaar_file.save(filepath)
