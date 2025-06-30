@@ -1,0 +1,173 @@
+/* === Global Reset & Dark Theme === */
+* {
+  box-sizing: border-box;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #121212;
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
+  overflow-x: hidden;
+}
+
+/* === Container === */
+.consult-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* === Feature Box === */
+.feature-box {
+  background: #1f2937;
+  padding: 40px 30px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.05);
+  transition: 0.3s ease;
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.feature-box:hover {
+  transform: scale(1.02);
+  background: #374151;
+}
+
+/* === Heading & Paragraph === */
+.feature-box h2 {
+  font-size: 24px;
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.feature-box p {
+  font-size: 15px;
+  color: #cccccc;
+  margin-bottom: 20px;
+}
+
+/* === Glowing Button === */
+.btn-glow {
+  background-color: #f3f4f6;
+  color: #111827;
+  border-radius: 25px;
+  padding: 12px 30px;
+  font-weight: bold;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.08);
+}
+
+.btn-glow:hover {
+  background-color: #e0e0e0;
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);
+}
+
+/* === Hospital Results === */
+.results-box {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 500px;
+}
+
+/* Each hospital card */
+.hospital-card {
+  background: #2b2b2b;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 3px 10px rgba(255, 255, 255, 0.04);
+  transition: transform 0.3s ease;
+}
+
+.hospital-card:hover {
+  transform: scale(1.02);
+  background: #333;
+}
+
+.hospital-card h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #f0f0f0;
+}
+
+.hospital-card p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #bbbbbb;
+}
+
+/* === Stepbar === */
+.stepbar {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  background-color: #2c2c2c;
+  border-radius: 12px 0 0 12px;
+  padding: 10px;
+  gap: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+.stepbar div {
+  width: 30px;
+  height: 30px;
+  background-color: #555;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.stepbar div.active {
+  background-color: #5f27cd;
+  box-shadow: 0 0 10px #5f27cd;
+}
+
+/* === Mobile Responsive === */
+@media screen and (max-width: 600px) {
+  .consult-container {
+    padding: 20px;
+  }
+
+  .stepbar {
+    flex-direction: row;
+    bottom: 0;
+    top: auto;
+    right: 50%;
+    transform: translateX(50%);
+    padding: 8px 10px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .stepbar div {
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
+  }
+
+  .btn-glow {
+    width: 100%;
+    max-width: 220px;
+  }
+}
