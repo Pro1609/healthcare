@@ -428,30 +428,37 @@ def consult_choice():
 
 @app.route('/consult', methods=['GET', 'POST'])
 def consult():
-    if request.method == 'POST':
-        try:
-            data = request.get_json(force=True)
-            user_lat = float(data['lat'])
-            user_lon = float(data['lon'])
+    if request.method == 'GET':
+        return render_template("consult.html", azure_maps_key=os.getenv("AZURE_MAPS_KEY"))
 
-            print("📍 Received location:", user_lat, user_lon)
+    try:
+        data = request.get_json()
+        lat, lon = data.get("lat"), data.get("lon")
+        if not lat or not lon:
+            raise ValueError("Missing lat/lon")
 
-            nearby = []
-            for hosp in hospitals_data:
-                dist = haversine(user_lat, user_lon, hosp['lat'], hosp['lon'])
-                if dist <= 10:
-                    hosp_copy = hosp.copy()
-                    hosp_copy['distance'] = dist
-                    nearby.append(hosp_copy)
+        # Azure Maps POI Search API
+        search_url = "https://atlas.microsoft.com/search/poi/category/json"
+        params = {
+            "api-version": "1.0",
+            "subscription-key": os.getenv("AZURE_MAPS_KEY"),
+            "query": "hospital",
+            "lat": lat,
+            "lon": lon,
+            "radius": 10000,  # 10km
+            "limit": 15
+        }
 
-            return jsonify({"hospitals": nearby})
-        except Exception as e:
-            print("❌ Location processing error:", str(e))
-            return jsonify({"hospitals": []})
-    
-    # GET request renders HTML
-    return render_template("consult.html", azure_maps_key=os.getenv("AZURE_MAPS_KEY"))
+        response = requests.get(search_url, params=params)
+        if response.status_code != 200:
+            print("❌ Azure API error:", response.text)
+            return jsonify({"results": []})
 
+        return jsonify({"results": response.json().get("results", [])})
+
+    except Exception as e:
+        print("❌ Consult route error:", str(e))
+        return jsonify({"results": []})
 
     return render_template("consult.html")
 if __name__ == '__main__':
