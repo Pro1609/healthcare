@@ -394,5 +394,16 @@ Make the response realistic, useful, and grounded only in the data provided abov
 
     return render_template("report.html", name=name, dob=dob, aadhaar=aadhaar, soap=soap_note)
 
+@app.route('/consultchoice', methods=['GET', 'POST'])
+def consult_choice():
+    if request.method == 'POST':
+        choice = request.form.get('choice')
+        if choice == 'yes':
+            return redirect(url_for('location_access'))  # You'll define this later
+        else:
+            return redirect(url_for('thankyou'))
+    return render_template("consultchoice.html")
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
