@@ -11,6 +11,8 @@ import base64
 import subprocess
 import uuid
 import time
+from pdf2image import convert_from_bytes
+from PIL import Image
 
 # Load environment variables
 load_dotenv()
@@ -45,13 +47,20 @@ client = Together()
 # Twilio Client
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
-# Aadhaar filter keywords
+# Aadhaar filter
 with open("aadhaar_filter_keywords.txt", "r") as f:
     unwanted = [line.strip().lower() for line in f]
 
 def clean_ocr_text(text):
     lines = text.split("\n")
     return "\n".join(line for line in lines if all(word not in line.lower() for word in unwanted))
+
+# 🔧 Helper to convert PIL image to bytes
+def image_to_bytes(img):
+    from io import BytesIO
+    buf = BytesIO()
+    img.save(buf, format='JPEG')
+    return buf.getvalue()
 
 @app.route('/')
 @app.route('/home')
@@ -186,87 +195,93 @@ def image_upload():
 
     return render_template("imageupload.html")
 
+from flask import request, render_template, redirect, url_for, session
+import os, re, time, requests
+from pdf2image import convert_from_bytes
+from PIL import Image
+
+# Aadhaar filter
+with open("aadhaar_filter_keywords.txt", "r") as f:
+    unwanted = [line.strip().lower() for line in f]
+
+def clean_ocr_text(text):
+    lines = text.split("\n")
+    return "\n".join(line for line in lines if all(word not in line.lower() for word in unwanted))
+
 @app.route('/aadhaar', methods=['GET', 'POST'])
 def aadhaar():
     if request.method == 'GET':
         return render_template("aadhaar.html")
 
     aadhaar_file = request.files.get('aadhaar')
-
     if not aadhaar_file or aadhaar_file.filename == '':
-        print("❌ No file uploaded.")
-        return "<h2>No Aadhaar file uploaded. Please try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
+        return "<h2>No file uploaded.</h2><a href='/aadhaar'>🡸 Try Again</a>"
 
-    if not aadhaar_file.filename.lower().endswith('.pdf'):
-        print(f"⚠️ Invalid file format: {aadhaar_file.filename}")
-        return "<h2>Only PDF format is currently supported.</h2><a href='/aadhaar'>🡸 Try Again</a>"
-
+    ext = aadhaar_file.filename.lower().split('.')[-1]
     filename = aadhaar_file.filename.replace(" ", "_")
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    filepath = os.path.join("uploads", filename)
 
     try:
         aadhaar_file.save(filepath)
         print(f"💾 File saved to {filepath}")
     except Exception as e:
-        print("❌ File saving error:", str(e))
-        return "<h2>Failed to save the file. Please try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
+        print("❌ Save error:", str(e))
+        return "<h2>Upload failed. Try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
+
+    # 🔍 Azure OCR setup
+    ocr_url = f"{AZURE_VISION_ENDPOINT}/vision/v3.2/read/analyze"
+    headers = {"Ocp-Apim-Subscription-Key": AZURE_VISION_KEY}
 
     try:
-        # 🔍 Submit OCR to Azure
-        ocr_url = f"{AZURE_VISION_ENDPOINT}/vision/v3.2/read/analyze"
-        headers = {
-            "Ocp-Apim-Subscription-Key": AZURE_VISION_KEY,
-            "Content-Type": "application/pdf"
-        }
+        # 📄 PDF ➝ Convert to image
+        if ext == 'pdf':
+            images = convert_from_bytes(open(filepath, 'rb').read())
+            image = images[0]
+            img_bytes = image_to_bytes(image)
+            headers["Content-Type"] = "application/octet-stream"
+        elif ext in ['jpg', 'jpeg', 'png']:
+            image = Image.open(filepath)
+            img_bytes = image_to_bytes(image)
+            headers["Content-Type"] = "application/octet-stream"
+        else:
+            print("❌ Unsupported format.")
+            return "<h2>Only PDF or Image files allowed.</h2><a href='/aadhaar'>🡸 Try Again</a>"
 
-        with open(filepath, 'rb') as f:
-            ocr_response = requests.post(ocr_url, headers=headers, data=f)
+        # 🧠 Send to Azure OCR
+        response = requests.post(ocr_url, headers=headers, data=img_bytes)
+        if response.status_code != 202:
+            print("❌ OCR submit failed:", response.text)
+            raw_text = ""
+        else:
+            operation_url = response.headers['Operation-Location']
+            for _ in range(10):
+                result = requests.get(operation_url, headers={"Ocp-Apim-Subscription-Key": AZURE_VISION_KEY}).json()
+                if result.get("status") == "succeeded":
+                    raw_text = "\n".join(line["text"] for page in result["analyzeResult"]["readResults"] for line in page["lines"])
+                    break
+                time.sleep(2)
+            else:
+                raw_text = ""
 
-        if ocr_response.status_code != 202:
-            print("❌ OCR API failed:", ocr_response.text)
-            return "<h2>OCR failed. Please try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
+        print("🔍 Raw OCR:", raw_text)
 
-        # 🕒 Poll the operation-location
-        operation_url = ocr_response.headers['Operation-Location']
-        print("📡 OCR request submitted. Polling:", operation_url)
-
-        for attempt in range(10):
-            result_response = requests.get(operation_url, headers={"Ocp-Apim-Subscription-Key": AZURE_VISION_KEY})
-            result_json = result_response.json()
-
-            status = result_json.get("status", "")
-            if status == "succeeded":
-                break
-            elif status == "failed":
-                print("❌ OCR processing failed.")
-                return "<h2>OCR failed. Try with a clearer Aadhaar PDF.</h2><a href='/aadhaar'>🡸 Try Again</a>"
-            time.sleep(2)
-
-        # 📄 Extract text
+    except Exception as e:
+        print("❌ OCR Exception:", str(e))
         raw_text = ""
-        for line in result_json["analyzeResult"]["readResults"]:
-            for l in line["lines"]:
-                raw_text += l["text"] + "\n"
 
-        print("🔍 Raw OCR Text:\n", raw_text)
+    # 🧹 Clean and Extract
+    cleaned_text = clean_ocr_text(raw_text) if raw_text else ""
+    print("🧹 Cleaned Text:", cleaned_text)
 
-    except Exception as e:
-        print("❌ OCR error:", str(e))
-        return "<h2>OCR failed. Please try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
-
-    try:
-        cleaned_text = clean_ocr_text(raw_text)
-        print("🧹 Cleaned OCR Text:\n", cleaned_text)
-    except Exception as e:
-        print("❌ OCR cleaning error:", str(e))
-        return "<h2>Text cleanup failed. Please try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
+    # Fallback Values
+    aadhaar_number = "Cannot be extracted"
+    dob = "Cannot be extracted"
+    name = "Cannot be extracted"
 
     try:
-        aadhaar_match = re.search(r'\b\d{4}\s\d{4}\s\d{4}\b|\b\d{12}\b', cleaned_text.replace("\n", " "))
-        aadhaar_number = aadhaar_match.group() if aadhaar_match else "Aadhaar Not Detected"
-    except Exception as e:
-        print("❌ Aadhaar number extraction error:", str(e))
-        aadhaar_number = "Aadhaar Not Detected"
+        match = re.search(r'\b\d{4}\s\d{4}\s\d{4}\b|\b\d{12}\b', cleaned_text.replace("\n", " "))
+        if match: aadhaar_number = match.group()
+    except: pass
 
     try:
         dob_match = (
@@ -274,40 +289,35 @@ def aadhaar():
             re.search(r'Year\s*of\s*Birth\s*[:\s]*((?:19|20)\d{2})', cleaned_text, re.IGNORECASE) or
             re.search(r'\b(19|20)\d{2}\b', cleaned_text)
         )
-        dob = dob_match.group(1) if dob_match and dob_match.lastindex else dob_match.group()
-    except Exception as e:
-        print("❌ DOB extraction error:", str(e))
-        dob = "DOB Not Detected"
+        if dob_match:
+            dob = dob_match.group(1) if dob_match.lastindex else dob_match.group()
+    except: pass
 
     try:
-        name = "Name Not Detected"
         for line in cleaned_text.split("\n"):
             line = line.strip()
             if (
                 len(line.split()) >= 2 and
-                not any(x in line.lower() for x in ["aadhaar", "govt", "year", "dob", "issued", "male", "female", "of", "birth"]) and
+                not any(word in line.lower() for word in ["aadhaar", "govt", "dob", "year", "issued", "male", "female"]) and
                 not re.search(r'[^a-zA-Z\s]', line)
             ):
                 name = line.title()
                 break
-    except Exception as e:
-        print("❌ Name extraction error:", str(e))
-        name = "Name Not Detected"
+    except: pass
 
-    print("✅ Extracted Name:", name)
-    print("✅ Extracted DOB:", dob)
-    print("✅ Extracted Aadhaar:", aadhaar_number)
+    print("✅ Name:", name)
+    print("✅ DOB:", dob)
+    print("✅ Aadhaar:", aadhaar_number)
 
-    try:
-        return redirect(url_for('report',
-            name=name,
-            dob=dob,
-            aadhaar=aadhaar_number,
-            symptoms=session.get("symptoms", "")
-        ))
-    except Exception as e:
-        print("❌ Redirect error:", str(e))
-        return "<h2>Something went wrong after processing. Please try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
+    return redirect(url_for('report',
+        name=name,
+        dob=dob,
+        aadhaar=aadhaar_number,
+        symptoms=session.get("symptoms", "")
+    ))
+
+
+
 
 def generate_soap_strict(symptoms, name, dob, aadhaar):
     return f"""
