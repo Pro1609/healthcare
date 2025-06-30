@@ -77,6 +77,30 @@ body, html {
   box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);
 }
 
+/* Ripple Effect */
+button .ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: ripple-animation 0.6s linear;
+  background-color: rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  z-index: 2;
+}
+
+button {
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes ripple-animation {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+
 /* === Reuse as Specific Buttons === */
 .yes-btn, .no-btn {
   width: 120px;
