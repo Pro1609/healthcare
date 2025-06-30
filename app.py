@@ -426,10 +426,6 @@ def consult_choice():
             return redirect(url_for('thankyou'))
     return render_template("consultchoice.html")
 
-from flask import request, jsonify, render_template
-import os
-import requests
-
 @app.route('/consult', methods=['GET', 'POST'])
 def consult():
     if request.method == 'GET':
@@ -449,8 +445,8 @@ def consult():
             "query": "hospital",
             "lat": lat,
             "lon": lon,
-            "radius": 10000,  # 10km
-            "limit": 15
+            "radius": 10000,
+            "limit": 25  # Fetch more to allow fallback
         }
 
         response = requests.get(search_url, params=params)
@@ -460,25 +456,32 @@ def consult():
 
         all_hospitals = response.json().get("results", [])
 
-        # Load top hospitals list from file
+        # Load top hospital keywords
         top_keywords = []
         with open("hospitals.txt", "r", encoding="utf-8") as file:
             top_keywords = [line.strip().lower() for line in file if line.strip()]
 
-        # Filter based on name match with top hospitals
+        # Step 1: Renowned hospitals
         renowned = []
+        fallback = []
+
         for hosp in all_hospitals:
             name = hosp.get("poi", {}).get("name", "").lower()
             if any(keyword in name for keyword in top_keywords):
                 renowned.append(hosp)
+            else:
+                fallback.append(hosp)
 
-        final_results = renowned if renowned else all_hospitals
+        # Step 2: Combine results up to 9 max (renowned first, then fallback)
+        final_results = renowned + [h for h in fallback if h not in renowned]
+        final_results = final_results[:9]
 
         return jsonify({"results": final_results})
 
     except Exception as e:
         print("❌ Consult route error:", str(e))
         return jsonify({"results": []})
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
