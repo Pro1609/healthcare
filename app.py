@@ -36,6 +36,9 @@ AZURE_TRANSLATOR_ENDPOINT = os.getenv("AZURE_TRANSLATOR_ENDPOINT")
 AZURE_VISION_KEY = os.getenv("AZURE_VISION_KEY")
 AZURE_VISION_ENDPOINT = os.getenv("AZURE_VISION_ENDPOINT")
 
+AZURE_MAPS_KEY = os.getenv("AZURE_MAPS_KEY")
+
+
 # Load AssemblyAI API key from .env
 aai.settings.api_key = os.getenv("ASSEMBLYAI_API_KEY")
 
