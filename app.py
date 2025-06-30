@@ -426,10 +426,32 @@ def consult_choice():
             return redirect(url_for('thankyou'))
     return render_template("consultchoice.html")
 
-@app.route('/consult', methods=['GET'])
+@app.route('/consult', methods=['GET', 'POST'])
 def consult():
-    azure_maps_key = os.getenv("AZURE_MAPS_KEY")
-    return render_template("consult.html", azure_maps_key=azure_maps_key)
+    if request.method == 'POST':
+        try:
+            data = request.get_json(force=True)
+            user_lat = float(data['lat'])
+            user_lon = float(data['lon'])
+
+            print("📍 Received location:", user_lat, user_lon)
+
+            nearby = []
+            for hosp in hospitals_data:
+                dist = haversine(user_lat, user_lon, hosp['lat'], hosp['lon'])
+                if dist <= 10:
+                    hosp_copy = hosp.copy()
+                    hosp_copy['distance'] = dist
+                    nearby.append(hosp_copy)
+
+            return jsonify({"hospitals": nearby})
+        except Exception as e:
+            print("❌ Location processing error:", str(e))
+            return jsonify({"hospitals": []})
+    
+    # GET request renders HTML
+    return render_template("consult.html", azure_maps_key=os.getenv("AZURE_MAPS_KEY"))
+
 
     return render_template("consult.html")
 if __name__ == '__main__':
