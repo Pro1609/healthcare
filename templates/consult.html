@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Consult a Doctor</title>
+  <title>Nearby Hospitals</title>
   <link rel="stylesheet" href="/static/css/consult.css" />
 </head>
 <body>
-  <div class="consult-container">
-    <!-- Step Bar -->
+  <div class="image-upload-container">
     <div class="stepbar">
       <div>1</div>
       <div>2</div>
@@ -19,18 +18,17 @@
       <div>7</div>
     </div>
 
-    <!-- Location + Hospital Area -->
-    <div class="location-box feature-box" id="locationBox">
-      <h2>Consult a Doctor Near You</h2>
-      <p>We need your location to find hospitals or clinics near you.</p>
-      <button class="btn-glow" onclick="getLocation()">Allow Location</button>
-      <div id="status" style="margin-top: 20px; font-size: 14px; color: #ccc;"></div>
+    <div class="upload-area feature-box">
+      <h2>Finding Hospitals Near You</h2>
+      <p id="status">Waiting for location permission...</p>
+      <ul id="hospital-list"></ul>
+      <button onclick="window.location.href='/thankyou'" class="btn-glow">Skip</button>
     </div>
-
-    <!-- Results will be shown here -->
-    <div class="results-box" id="resultsBox"></div>
   </div>
 
+  <script>
+    const AZURE_MAPS_KEY = "{{ azure_maps_key }}";
+  </script>
   <script src="/static/js/consult.js"></script>
 </body>
 </html>
