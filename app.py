@@ -11,8 +11,6 @@ import base64
 import subprocess
 import uuid
 import time
-from pdf2image import convert_from_bytes
-from PIL import Image
 
 # Load environment variables
 load_dotenv()
@@ -50,17 +48,16 @@ twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 # Aadhaar filter
 with open("aadhaar_filter_keywords.txt", "r") as f:
     unwanted = [line.strip().lower() for line in f]
-
-def clean_ocr_text(text):
-    lines = text.split("\n")
-    return "\n".join(line for line in lines if all(word not in line.lower() for word in unwanted))
-
-# 🔧 Helper to convert PIL image to bytes
 def image_to_bytes(img):
     from io import BytesIO
     buf = BytesIO()
     img.save(buf, format='JPEG')
     return buf.getvalue()
+def clean_ocr_text(text):
+    lines = text.split("\n")
+    return "\n".join(line for line in lines if all(word not in line.lower() for word in unwanted))
+
+
 
 @app.route('/')
 @app.route('/home')
@@ -201,12 +198,7 @@ from pdf2image import convert_from_bytes
 from PIL import Image
 
 # Aadhaar filter
-with open("aadhaar_filter_keywords.txt", "r") as f:
-    unwanted = [line.strip().lower() for line in f]
 
-def clean_ocr_text(text):
-    lines = text.split("\n")
-    return "\n".join(line for line in lines if all(word not in line.lower() for word in unwanted))
 
 @app.route('/aadhaar', methods=['GET', 'POST'])
 def aadhaar():
@@ -228,59 +220,55 @@ def aadhaar():
         print("❌ Save error:", str(e))
         return "<h2>Upload failed. Try again.</h2><a href='/aadhaar'>🡸 Try Again</a>"
 
-    # 🔍 Azure OCR setup
+    # 🔍 Azure OCR Setup
     ocr_url = f"{AZURE_VISION_ENDPOINT}/vision/v3.2/read/analyze"
     headers = {"Ocp-Apim-Subscription-Key": AZURE_VISION_KEY}
 
-    try:
-        # 📄 PDF ➝ Convert to image
-        if ext == 'pdf':
-            images = convert_from_bytes(open(filepath, 'rb').read())
-            image = images[0]
-            img_bytes = image_to_bytes(image)
-            headers["Content-Type"] = "application/octet-stream"
-        elif ext in ['jpg', 'jpeg', 'png']:
-            image = Image.open(filepath)
-            img_bytes = image_to_bytes(image)
-            headers["Content-Type"] = "application/octet-stream"
-        else:
-            print("❌ Unsupported format.")
-            return "<h2>Only PDF or Image files allowed.</h2><a href='/aadhaar'>🡸 Try Again</a>"
+    if ext == 'pdf':
+        headers["Content-Type"] = "application/pdf"
+    elif ext in ['jpg', 'jpeg', 'png']:
+        headers["Content-Type"] = "application/octet-stream"
+    else:
+        return "<h2>Unsupported file type. Only PDF or image allowed.</h2><a href='/aadhaar'>🡸 Try Again</a>"
 
-        # 🧠 Send to Azure OCR
-        response = requests.post(ocr_url, headers=headers, data=img_bytes)
+    try:
+        with open(filepath, 'rb') as f:
+            response = requests.post(ocr_url, headers=headers, data=f)
+
         if response.status_code != 202:
-            print("❌ OCR submit failed:", response.text)
+            print("❌ OCR API failure:", response.text)
             raw_text = ""
         else:
             operation_url = response.headers['Operation-Location']
             for _ in range(10):
                 result = requests.get(operation_url, headers={"Ocp-Apim-Subscription-Key": AZURE_VISION_KEY}).json()
                 if result.get("status") == "succeeded":
-                    raw_text = "\n".join(line["text"] for page in result["analyzeResult"]["readResults"] for line in page["lines"])
+                    raw_text = "\n".join(
+                        line["text"]
+                        for page in result["analyzeResult"]["readResults"]
+                        for line in page["lines"]
+                    )
                     break
                 time.sleep(2)
             else:
                 raw_text = ""
-
-        print("🔍 Raw OCR:", raw_text)
-
     except Exception as e:
-        print("❌ OCR Exception:", str(e))
+        print("❌ OCR Error:", str(e))
         raw_text = ""
 
     # 🧹 Clean and Extract
     cleaned_text = clean_ocr_text(raw_text) if raw_text else ""
-    print("🧹 Cleaned Text:", cleaned_text)
+    print("🧹 Cleaned OCR Text:\n", cleaned_text)
 
-    # Fallback Values
+    # Default fallback values
     aadhaar_number = "Cannot be extracted"
     dob = "Cannot be extracted"
     name = "Cannot be extracted"
 
     try:
         match = re.search(r'\b\d{4}\s\d{4}\s\d{4}\b|\b\d{12}\b', cleaned_text.replace("\n", " "))
-        if match: aadhaar_number = match.group()
+        if match:
+            aadhaar_number = match.group()
     except: pass
 
     try:
@@ -315,7 +303,6 @@ def aadhaar():
         aadhaar=aadhaar_number,
         symptoms=session.get("symptoms", "")
     ))
-
 
 
 
