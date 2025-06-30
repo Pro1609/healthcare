@@ -81,6 +81,26 @@ p {
   line-height: 1.5;
 }
 
+.btn-glow {
+  background-color: #f3f4f6;
+  color: #111827;
+  border-radius: 25px;
+  padding: 12px 30px;
+  font-weight: bold;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.08);
+}
+
+.btn-glow:hover {
+  background-color: #e0e0e0;
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);
+}
+
+
 /* Mobile responsiveness */
 @media (max-width: 600px) {
   .soap-box {
