@@ -418,7 +418,7 @@ def consult_choice():
     if request.method == 'POST':
         choice = request.form.get('choice')
         if choice == 'yes':
-            return redirect(url_for('location_access'))  # You'll define this later
+            return redirect(url_for('cunsult'))  # You'll define this later
         else:
             return redirect(url_for('thankyou'))
     return render_template("consultchoice.html")
