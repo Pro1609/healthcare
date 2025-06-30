@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consult a Doctor</title>
+  <link rel="stylesheet" href="/static/css/consult.css" />
+</head>
+<body>
+  <div class="consult-container">
+    <!-- Step Bar -->
+    <div class="stepbar">
+      <div>1</div>
+      <div>2</div>
+      <div>3</div>
+      <div>4</div>
+      <div>5</div>
+      <div class="active">6</div>
+      <div>7</div>
+    </div>
+
+    <!-- Location + Hospital Area -->
+    <div class="location-box feature-box" id="locationBox">
+      <h2>Consult a Doctor Near You</h2>
+      <p>We need your location to find hospitals or clinics near you.</p>
+      <button class="btn-glow" onclick="getLocation()">Allow Location</button>
+      <div id="status" style="margin-top: 20px; font-size: 14px; color: #ccc;"></div>
+    </div>
+
+    <!-- Results will be shown here -->
+    <div class="results-box" id="resultsBox"></div>
+  </div>
+
+  <script src="/static/js/consult.js"></script>
+</body>
+</html>
