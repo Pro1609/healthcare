@@ -426,6 +426,10 @@ def consult_choice():
             return redirect(url_for('thankyou'))
     return render_template("consultchoice.html")
 
+from flask import request, jsonify, render_template
+import os
+import requests
+
 @app.route('/consult', methods=['GET', 'POST'])
 def consult():
     if request.method == 'GET':
@@ -454,12 +458,27 @@ def consult():
             print("❌ Azure API error:", response.text)
             return jsonify({"results": []})
 
-        return jsonify({"results": response.json().get("results", [])})
+        all_hospitals = response.json().get("results", [])
+
+        # Load top hospitals list from file
+        top_keywords = []
+        with open("hospitals.txt", "r", encoding="utf-8") as file:
+            top_keywords = [line.strip().lower() for line in file if line.strip()]
+
+        # Filter based on name match with top hospitals
+        renowned = []
+        for hosp in all_hospitals:
+            name = hosp.get("poi", {}).get("name", "").lower()
+            if any(keyword in name for keyword in top_keywords):
+                renowned.append(hosp)
+
+        final_results = renowned if renowned else all_hospitals
+
+        return jsonify({"results": final_results})
 
     except Exception as e:
         print("❌ Consult route error:", str(e))
         return jsonify({"results": []})
 
-    return render_template("consult.html")
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
