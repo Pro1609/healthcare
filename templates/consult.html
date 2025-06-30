@@ -7,8 +7,8 @@
   <link rel="stylesheet" href="/static/css/consult.css" />
 </head>
 <body>
-  <div class="image-upload-container">
-    
+  <div class="consult-container">
+
     <!-- Step Progress Bar -->
     <div class="stepbar">
       <div>1</div>
@@ -20,25 +20,28 @@
       <div>7</div>
     </div>
 
-    <!-- Main Hospital Lookup Box -->
-    <div class="upload-area feature-box">
+    <!-- Main Box Area -->
+    <div class="feature-box">
       <h2>Finding Hospitals Near You</h2>
       <p id="status">Waiting for location permission...</p>
-      
-      <!-- Hospital Cards Will Be Injected Here -->
-      <div id="hospitalList" class="hospital-grid"></div>
 
-      <!-- Skip Button -->
+      <!-- Wrapper for Hospital Cards -->
+      <div class="hospital-wrapper">
+        <div id="hospitalList" class="hospital-grid"></div>
+      </div>
+
+      <!-- Optional Skip Button -->
       <button onclick="window.location.href='/thankyou'" class="btn-glow">Skip</button>
     </div>
+
   </div>
 
-  <!-- JS: Azure Maps Key (optional if not used directly here) -->
+  <!-- Azure Maps Key if needed -->
   <script>
     const AZURE_MAPS_KEY = "{{ azure_maps_key }}";
   </script>
 
-  <!-- JS: Location Logic -->
+  <!-- JS to fetch hospital data -->
   <script src="/static/js/consult.js"></script>
 </body>
 </html>
