@@ -1,12 +1,26 @@
+/* ======= GLOBAL DARK BACKGROUND + PARTICLE SUPPORT ======= */
 body, html {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   background-color: #121212;
-  font-family: 'Segoe UI', sans-serif;
   color: white;
-  overflow: hidden;
+  font-family: 'Segoe UI', sans-serif;
+  overflow-x: hidden;
+  position: relative;
+  z-index: 1; /* ensures content is above the particle canvas */
+}
+
+#particles-js {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0; /* canvas layer behind everything */
+  background: transparent;
+  pointer-events: none; /* disables clicks blocking UI */
 }
 
 .thankyou-container {
@@ -19,19 +33,6 @@ body, html {
   padding: 40px 20px;
   position: relative;
 }
-
-#particles-js {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  z-index: -100;
-  background: transparent;
-  pointer-events: none;
-}
-
-
 
 .feature-box {
   background: #1f2937;
