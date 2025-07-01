@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Particles Background</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100vh;
+      background-color: #121212;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    #particles-js {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      background: transparent;
+      pointer-events: none;
+    }
+
+    .center-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 24px;
+      opacity: 0.4;
+      z-index: 1;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="particles-js"></div>
+  <div class="center-message">Recording Background... 🎥</div>
+
+  <!-- Particle JS Library -->
+  <script src="{{ url_for('static', filename='js/particles.min.js') }}"></script>
+
+  <!-- Particle Config -->
+  <script>
+    window.onload = function () {
+      particlesJS("particles-js", {
+        "particles": {
+          "number": { "value": 360, "density": { "enable": true, "value_area": 800 } },
+          "color": { "value": "#a855f7" },
+          "shape": { "type": "circle" },
+          "opacity": {
+            "value": 0.6,
+            "random": true,
+            "anim": { "enable": true, "speed": 1, "opacity_min": 0.1 }
+          },
+          "size": {
+            "value": 3,
+            "random": true,
+            "anim": { "enable": true, "speed": 4, "size_min": 0.3 }
+          },
+          "line_linked": {
+            "enable": true,
+            "distance": 130,
+            "color": "#a855f7",
+            "opacity": 0.4,
+            "width": 1
+          },
+          "move": {
+            "enable": true,
+            "speed": 3.5,
+            "direction": "none",
+            "out_mode": "bounce",
+            "bounce": true
+          }
+        },
+        "interactivity": {
+          "detect_on": "canvas",
+          "events": {
+            "onhover": { "enable": true, "mode": "repulse" },
+            "onclick": { "enable": true, "mode": "push" }
+          },
+          "modes": {
+            "repulse": { "distance": 150, "duration": 0.6 },
+            "push": { "particles_nb": 4 }
+          }
+        },
+        "retina_detect": true
+      });
+    };
+  </script>
+</body>
+</html>
