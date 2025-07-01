@@ -527,5 +527,9 @@ def consult():
 def thankyou():
     return render_template('thankyou.html')
 
+@app.route("/empty")
+def empty_particles():
+    return render_template("empty_particles.html")
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
