@@ -20,15 +20,21 @@ body, html {
   height: 100%;
   z-index: 0; /* canvas layer behind everything */
   background: transparent;
-  pointer-events: none; /* disables clicks blocking UI */
+  pointer-events: none;
 }
 
-
+/* ======= AADHAAR PAGE ======= */
 .aadhaar-container {
   display: flex;
   min-height: 100vh;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  position: relative;
+  z-index: 2; /* above particles */
 }
 
+/* Step Progress Bar */
 .stepbar {
   position: fixed;
   top: 50%;
@@ -36,11 +42,12 @@ body, html {
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  background-color: #2c2c2c;
+  background-color: rgba(44, 44, 44, 0.8);
   border-radius: 12px 0 0 12px;
   padding: 10px;
   gap: 12px;
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+  z-index: 10;
 }
 
 .stepbar div {
@@ -60,41 +67,56 @@ body, html {
   box-shadow: 0 0 10px #7649e0;
 }
 
+/* Upload Card - Glassmorphic */
 .upload-box-wrapper {
-  margin: auto;
-  background-color: #1f1f1f;
+  backdrop-filter: blur(18px);
+  background-color: rgba(255, 255, 255, 0.05);
   padding: 40px;
-  border-radius: 16px;
-  max-width: 500px;
-  width: 90%;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+  border-radius: 18px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   text-align: center;
+  z-index: 2;
 }
 
-h2 {
+.upload-box-wrapper h2 {
   margin-bottom: 24px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #f3f3f3;
 }
 
+/* Drag & Drop Box */
 .upload-box {
-  border: 2px dashed #888;
+  border: 2px dashed #7649e0;
   padding: 30px 20px;
-  border-radius: 12px;
-  background-color: #2a2a2a;
+  border-radius: 14px;
+  background-color: rgba(44, 44, 44, 0.5);
   margin-bottom: 30px;
-  transition: all 0.3s ease;
+  transition: 0.3s;
 }
 
 .upload-box:hover {
-  transform: scale(1.03);
-  background-color: #383838;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
+  transform: scale(1.02);
+  background-color: rgba(66, 66, 66, 0.5);
+  box-shadow: 0 0 14px rgba(118, 73, 224, 0.3);
 }
 
 input[type="file"] {
   margin-top: 12px;
   color: #ccc;
+  background: none;
+  border: none;
+  padding: 6px;
+  border-radius: 8px;
+  width: 100%;
+  text-align: center;
+  font-size: 14px;
 }
 
+/* Buttons */
 .submit-btn {
   padding: 12px 24px;
   background-color: #7649e0;
@@ -103,7 +125,7 @@ input[type="file"] {
   border-radius: 10px;
   font-size: 16px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: 0.3s ease;
 }
 
 .submit-btn:hover {
@@ -111,11 +133,16 @@ input[type="file"] {
   box-shadow: 0 0 10px #7649e0;
 }
 
-/* Mobile Responsive */
+/* Mobile Responsiveness */
 @media (max-width: 600px) {
   .aadhaar-container {
     flex-direction: column;
     padding: 20px;
+  }
+
+  .upload-box-wrapper {
+    padding: 30px 20px;
+    width: 95vw;
   }
 
   .stepbar {
@@ -127,7 +154,6 @@ input[type="file"] {
     padding: 8px 10px;
     border-radius: 12px 12px 0 0;
   }
-
 
   .stepbar div {
     width: 26px;
