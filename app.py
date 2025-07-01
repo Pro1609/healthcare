@@ -364,15 +364,16 @@ One-line health advice: Please consult a doctor for further evaluation of your s
 
 @app.route('/report')
 def report():
+    # ⛑ Get user info or fallback
     name = request.args.get("name") or "Not provided"
     dob = request.args.get("dob") or "Not provided"
     aadhaar = request.args.get("aadhaar") or "Not provided"
 
-    # ✅ Pull symptoms from GET or fallback to session
+    # ✅ Pull symptoms (GET > session)
     symptoms = request.args.get("symptoms") or session.get("symptoms", "")
     print("🩺 Received Symptoms (raw):", symptoms)
 
-    # Sanity check
+    # 🔍 Basic symptom input check
     if not symptoms or not symptoms.strip():
         print("❌ Symptoms missing or empty.")
         return """
@@ -381,21 +382,23 @@ def report():
         <a href='/symptoms'>🡸 Back to Symptom Input</a>
         """
 
+    # 📂 Load keyword file
     try:
         with open("symptom_keywords.txt", "r") as file:
             keywords = [line.strip().lower() for line in file if line.strip()]
     except Exception as e:
         print("❌ Error reading symptom_keywords.txt:", str(e))
-        return "<h2>Server Error: Keywords file missing.</h2>"
+        return "<h2>Server Error: Symptom keyword list not found.</h2>"
 
-    print("📄 Loaded keywords:", keywords[:10], "...")  # only preview few keywords
+    print("📄 Loaded keywords:", keywords[:10], "...")
 
+    # 🧠 Check matches
     matches = sum(1 for word in keywords if word in symptoms.lower())
     print(f"🔍 Match count: {matches}")
 
     if matches < 1:
         print("❌ Not enough valid symptoms matched.")
-        return f"""
+        return """
         <h2>Invalid Symptom Description</h2>
         <p>Your input doesn't seem to describe enough medical symptoms.</p>
         <p>Please try again with more specific symptoms (e.g., 'fever and headache after eating').</p>
@@ -403,7 +406,7 @@ def report():
         <a href='/symptoms'>🡸 Back to Start</a>
         """
 
-    # ✅ Format prompt for AI
+    # ✍️ Final AI prompt
     prompt = f"""
 You are a medical assistant generating a SOAP (Subjective, Objective, Assessment, Plan) note.
 
@@ -428,9 +431,9 @@ Instructions:
 
 Make the response realistic, useful, and grounded only in the data provided above.
 """
-
     print("🧠 Final Prompt to AI:\n", prompt)
 
+    # 🧠 Query LLM or fallback
     try:
         response = client.chat.completions.create(
             model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
@@ -444,8 +447,14 @@ Make the response realistic, useful, and grounded only in the data provided abov
         soap_note = generate_soap_strict(symptoms, name, dob, aadhaar)
         print("🪄 Fallback SOAP Note:\n", soap_note)
 
-    # ✅ Final rendering
-    return render_template("report.html", name=name, dob=dob, aadhaar=aadhaar, soap=soap_note)
+    # ✅ Send to report
+    return render_template(
+        "report.html",
+        name=name,
+        dob=dob,
+        aadhaar=aadhaar,
+        soap=soap_note
+    )
 
 
 @app.route('/consultchoice', methods=['GET', 'POST'])
