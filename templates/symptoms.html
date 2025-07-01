@@ -73,6 +73,7 @@
 <!-- Particle JS -->
 <script src="/static/js/particles.min.js"></script>
 
+<!-- Particle Config -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   particlesJS("particles-js", {
@@ -80,8 +81,16 @@ document.addEventListener("DOMContentLoaded", () => {
       "number": { "value": 120, "density": { "enable": true, "value_area": 800 } },
       "color": { "value": "#a855f7" },
       "shape": { "type": "circle" },
-      "opacity": { "value": 0.6, "random": true },
-      "size": { "value": 3, "random": true },
+      "opacity": {
+        "value": 0.6,
+        "random": true,
+        "anim": { "enable": true, "speed": 1, "opacity_min": 0.1 }
+      },
+      "size": {
+        "value": 3,
+        "random": true,
+        "anim": { "enable": true, "speed": 4, "size_min": 0.3 }
+      },
       "line_linked": {
         "enable": true,
         "distance": 130,
@@ -98,13 +107,12 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     },
     "interactivity": {
-      "detect_on": "canvas",  // or try "window" if still not working
+      "detect_on": "canvas",
       "events": {
-        "onhover": { "enable": true, "mode": "grab" },
-        "onclick": { "enable": true, "mode": "repulse" }
+        "onhover": { "enable": true, "mode": "repulse" },  // FULL REPULSE MODE ✅
+        "onclick": { "enable": true, "mode": "push" }
       },
       "modes": {
-        "grab": { "distance": 200, "line_linked": { "opacity": 0.6 } },
         "repulse": { "distance": 150, "duration": 0.6 },
         "push": { "particles_nb": 4 }
       }
@@ -113,6 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
+
 
 
 
