@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="/static/css/report.css" />
 </head>
 <body>
+  <div id="particles-js"></div>
+
   <div class="report-container">
     <div class="stepbar">
       <div>1</div>
@@ -81,5 +83,44 @@
       html2pdf().set(opt).from(reportElement).save();
     });
   </script>
+  <!-- Particle JS Library -->
+<script src="/static/js/particles.min.js"></script>
+
+<!-- Particle Config -->
+<script>
+particlesJS("particles-js", {
+  "particles": {
+    "number": { "value": 60 },
+    "color": { "value": "#a855f7" },
+    "shape": { "type": "circle" },
+    "opacity": { "value": 0.6 },
+    "size": { "value": 3 },
+    "line_linked": {
+      "enable": true,
+      "distance": 130,
+      "color": "#a855f7",
+      "opacity": 0.4,
+      "width": 1
+    },
+    "move": {
+      "enable": true,
+      "speed": 2
+    }
+  },
+  "interactivity": {
+    "detect_on": "canvas",
+    "events": {
+      "onhover": { "enable": true, "mode": "repulse" },
+      "onclick": { "enable": true, "mode": "push" }
+    },
+    "modes": {
+      "repulse": { "distance": 100 },
+      "push": { "particles_nb": 4 }
+    }
+  },
+  "retina_detect": true
+});
+</script>
+
 </body>
 </html>
