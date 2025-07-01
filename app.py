@@ -221,7 +221,6 @@ from PIL import Image
 
 # Aadhaar filter
 
-
 @app.route('/aadhaar', methods=['GET', 'POST'])
 def aadhaar():
     if request.method == 'GET':
@@ -282,17 +281,19 @@ def aadhaar():
     cleaned_text = clean_ocr_text(raw_text) if raw_text else ""
     print("🧹 Cleaned OCR Text:\n", cleaned_text)
 
-    # Default fallback values
-    aadhaar_number = "Cannot be extracted"
-    dob = "Cannot be extracted"
-    name = "Cannot be extracted"
+    # === Fallback defaults ===
+    aadhaar_number = "Not provided"
+    dob = "Not provided"
+    name = "Not provided"
 
+    # 🔎 Try extracting Aadhaar number
     try:
         match = re.search(r'\b\d{4}\s\d{4}\s\d{4}\b|\b\d{12}\b', cleaned_text.replace("\n", " "))
         if match:
             aadhaar_number = match.group()
     except: pass
 
+    # 🔎 Try extracting DOB
     try:
         dob_match = (
             re.search(r'\d{2}[/-]\d{2}[/-]\d{4}', cleaned_text) or
@@ -303,6 +304,7 @@ def aadhaar():
             dob = dob_match.group(1) if dob_match.lastindex else dob_match.group()
     except: pass
 
+    # 🔎 Try extracting Name
     try:
         for line in cleaned_text.split("\n"):
             line = line.strip()
@@ -325,7 +327,6 @@ def aadhaar():
         aadhaar=aadhaar_number,
         symptoms=session.get("symptoms", "")
     ))
-
 
 
 def generate_soap_strict(symptoms, name, dob, aadhaar):
