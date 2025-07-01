@@ -21,16 +21,19 @@
       <div>7</div>
     </div>
 
-    <div class="upload-box-wrapper">
-      <h2>Please upload your Aadhaar card</h2>
-      <form method="POST" enctype="multipart/form-data">
-        <div class="upload-box" id="aadhaar-box">
-          <label for="aadhaar">Upload Aadhaar (Image or PDF)</label>
-          <input type="file" name="aadhaar" id="aadhaar" accept="image/*,.pdf" required />
-        </div>
-        <button type="submit" class="submit-btn">Continue</button>
-      </form>
-    </div>
+    <div class="aadhaar-container">
+  <div class="upload-box-wrapper">
+    <h2>Please upload your Aadhaar card</h2>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="upload-box" id="aadhaar-box">
+        <label for="aadhaar">Upload Aadhaar (Image or PDF)</label>
+        <input type="file" name="aadhaar" id="aadhaar" accept="image/*,.pdf" required />
+      </div>
+      <button type="submit" class="submit-btn">Continue</button>
+    </form>
+  </div>
+</div>
+
   </div>
   <script src="/static/js/aadhaar.js"></script>
 <!-- Particle JS Library -->
