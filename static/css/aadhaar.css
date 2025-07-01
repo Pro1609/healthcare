@@ -117,6 +117,25 @@ input[type="file"] {
 }
 
 /* Buttons */
+
+.skip-btn {
+  padding: 10px 24px;
+  background-color: transparent;
+  color: #a855f7;
+  border: 2px solid #a855f7;
+  border-radius: 10px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+}
+
+.skip-btn:hover {
+  background-color: #a855f725;
+  box-shadow: 0 0 12px #a855f7;
+  transform: scale(1.03);
+}
+
 .submit-btn {
   padding: 12px 24px;
   background-color: #7649e0;
