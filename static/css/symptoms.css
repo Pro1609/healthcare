@@ -3,27 +3,30 @@
   box-sizing: border-box;
 }
 
+/* Dark Background + Interactivity Support */
 body, html {
   margin: 0;
   padding: 0;
   width: 100%;
   min-height: 100vh;
-  background-color: transparent;
+  background-color: #121212;  /* DARK BACKGROUND RESTORED ✅ */
   color: white;
   font-family: 'Segoe UI', sans-serif;
   overflow-x: hidden;
   position: relative;
+  z-index: 1;  /* Makes sure actual content is above particles ✅ */
 }
 
+/* Particle Canvas Layer */
 #particles-js {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 0; /* instead of -100 */
   background: transparent;
-  pointer-events: auto; /* instead of none */
+  z-index: -1; /* BACKGROUND ✅ */
+  pointer-events: none;  /* Allows interactivity in canvas only, not blocking UI ✅ */
 }
 
 
