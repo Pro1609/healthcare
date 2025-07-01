@@ -367,11 +367,15 @@ def report():
     name = request.args.get("name")
     dob = request.args.get("dob")
     aadhaar = request.args.get("aadhaar")
-    symptoms = request.args.get("symptoms", "").lower()
+    
+    # ✅ Fix: pull symptoms from GET or fallback to session
+    symptoms = request.args.get("symptoms") or session.get("symptoms", "")
+
+    print("🩺 Symptoms:", symptoms)
 
     with open("symptom_keywords.txt", "r") as file:
         keywords = [line.strip().lower() for line in file if line.strip()]
-    matches = sum(1 for word in keywords if word in symptoms)
+    matches = sum(1 for word in keywords if word in symptoms.lower())
 
     if matches < 1:
         return f"""
