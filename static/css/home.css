@@ -25,6 +25,8 @@ body, html {
 
 
 .hero {
+  position: relative;       /* 🆕 Add this */
+  z-index: 1;               /* 🆕 Add this */
   text-align: center;
   padding: 100px 20px;
   background: linear-gradient(to right, #5f27cd, #4c6ef5);
@@ -32,6 +34,7 @@ body, html {
   border-radius: 0 0 50px 50px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
+
 
 .btn-glow {
   background-color: #f3f4f6;
@@ -65,6 +68,8 @@ body, html {
 }
 
 .footer {
+  position: relative;       /* 🆕 Add this */
+  z-index: 1;               /* 🆕 Add this */
   background: #111827;
   color: #9ca3af;
   text-align: center;
