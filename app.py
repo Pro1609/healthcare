@@ -321,12 +321,18 @@ def aadhaar():
     print("✅ DOB:", dob)
     print("✅ Aadhaar:", aadhaar_number)
 
+    symptoms = session.get("symptoms", "").strip()
+    if not symptoms:
+        print("⚠️ No symptoms found in session. Redirecting back to /symptoms.")
+        return redirect("/symptoms")
+
     return redirect(url_for('report',
         name=name,
         dob=dob,
         aadhaar=aadhaar_number,
-        symptoms=session.get("symptoms", "")
-    ))
+        symptoms=symptoms
+))
+
 
 
 def generate_soap_strict(symptoms, name, dob, aadhaar):
