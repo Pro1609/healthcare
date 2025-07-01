@@ -26,24 +26,53 @@
 
     <div class="soap-box fade-in">
       <div class="soap-header">Subjective <span class="divider"></span></div>
-      <p>{{ soap.split('Subjective:')[1].split('Objective:')[0].strip() }}</p>
+      <p>
+        {% if 'Subjective:' in soap and 'Objective:' in soap %}
+          {{ soap.split('Subjective:')[1].split('Objective:')[0].strip() }}
+        {% else %}
+          Subjective note not available.
+        {% endif %}
+      </p>
     </div>
 
     <div class="soap-box fade-in">
       <div class="soap-header">Objective <span class="divider"></span></div>
-      <p>{{ soap.split('Objective:')[1].split('Assessment:')[0].strip() }}</p>
+      <p>
+        {% if 'Objective:' in soap and 'Assessment:' in soap %}
+          {{ soap.split('Objective:')[1].split('Assessment:')[0].strip() }}
+        {% else %}
+          Objective note not available.
+        {% endif %}
+      </p>
     </div>
 
     <div class="soap-box fade-in">
       <div class="soap-header">Assessment <span class="divider"></span></div>
-      <p>{{ soap.split('Assessment:')[1].split('Plan:')[0].strip() }}</p>
+      <p>
+        {% if 'Assessment:' in soap and 'Plan:' in soap %}
+          {{ soap.split('Assessment:')[1].split('Plan:')[0].strip() }}
+        {% else %}
+          Assessment not available.
+        {% endif %}
+      </p>
     </div>
 
     <div class="soap-box fade-in">
       <div class="soap-header">Plan <span class="divider"></span></div>
-      <p>{{ soap.split('Plan:')[1].split('Triage Severity Score:')[0].strip() }}</p>
+      <p>
+        {% if 'Plan:' in soap and 'Triage Severity Score:' in soap %}
+          {{ soap.split('Plan:')[1].split('Triage Severity Score:')[0].strip() }}
+        {% else %}
+          Plan not available.
+        {% endif %}
+      </p>
+
       <p><strong>Triage Score:</strong> 
-        {{ soap.split('Triage Severity Score:')[1].split('One-line')[0].strip() if 'Triage Severity Score:' in soap else 'Not available' }}/10
+        {% if 'Triage Severity Score:' in soap %}
+          {{ soap.split('Triage Severity Score:')[1].split('One-line')[0].strip() }}/10
+        {% else %}
+          Not available
+        {% endif %}
       </p>
 
       {% set one_liner = '' %}
@@ -60,12 +89,11 @@
   </div>
 
   <form action="/consultchoice" method="GET" style="text-align: center; margin-top: 20px;">
-  <button type="submit" class="btn-glow">Continue</button>
+    <button type="submit" class="btn-glow">Continue</button>
   </form>
 
   <!-- PDF Download Button -->
   <button id="download-pdf" class="pdf-icon-btn" title="Download PDF">📥</button>
-
 
   <!-- Scripts -->
   <script src="/static/js/report.js"></script>
@@ -83,44 +111,44 @@
       html2pdf().set(opt).from(reportElement).save();
     });
   </script>
-  <!-- Particle JS Library -->
-<script src="/static/js/particles.min.js"></script>
 
-<!-- Particle Config -->
-<script>
-particlesJS("particles-js", {
-  "particles": {
-    "number": { "value": 60 },
-    "color": { "value": "#a855f7" },
-    "shape": { "type": "circle" },
-    "opacity": { "value": 0.6 },
-    "size": { "value": 3 },
-    "line_linked": {
-      "enable": true,
-      "distance": 130,
-      "color": "#a855f7",
-      "opacity": 0.4,
-      "width": 1
-    },
-    "move": {
-      "enable": true,
-      "speed": 2
-    }
-  },
-  "interactivity": {
-    "detect_on": "canvas",
-    "events": {
-      "onhover": { "enable": true, "mode": "repulse" },
-      "onclick": { "enable": true, "mode": "push" }
-    },
-    "modes": {
-      "repulse": { "distance": 100 },
-      "push": { "particles_nb": 4 }
-    }
-  },
-  "retina_detect": true
-});
-</script>
-
+  <!-- Particle JS -->
+  <script src="/static/js/particles.min.js"></script>
+  <script>
+    particlesJS("particles-js", {
+      "particles": {
+        "number": { "value": 120, "density": { "enable": true, "value_area": 800 } },
+        "color": { "value": "#a855f7" },
+        "shape": { "type": "circle" },
+        "opacity": { "value": 0.5, "random": true },
+        "size": { "value": 3, "random": true },
+        "line_linked": {
+          "enable": true,
+          "distance": 150,
+          "color": "#a855f7",
+          "opacity": 0.4,
+          "width": 1
+        },
+        "move": {
+          "enable": true,
+          "speed": 2,
+          "direction": "none",
+          "out_mode": "out"
+        }
+      },
+      "interactivity": {
+        "detect_on": "canvas",
+        "events": {
+          "onhover": { "enable": true, "mode": "grab" },
+          "onclick": { "enable": true, "mode": "push" }
+        },
+        "modes": {
+          "grab": { "distance": 200, "line_linked": { "opacity": 0.6 } },
+          "push": { "particles_nb": 4 }
+        }
+      },
+      "retina_detect": true
+    });
+  </script>
 </body>
 </html>
