@@ -1,21 +1,26 @@
+/* ======= GLOBAL DARK BACKGROUND + PARTICLE SUPPORT ======= */
 body, html {
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', sans-serif;
+  width: 100%;
+  min-height: 100vh;
   background-color: #121212;
-  color: #fff;
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
   overflow-x: hidden;
-  height: 100vh;
+  position: relative;
+  z-index: 1; /* ensures content is above the particle canvas */
 }
+
 #particles-js {
   position: fixed;
-  width: 100%;
-  height: 100%;
   top: 0;
   left: 0;
-  z-index: -100;
+  width: 100%;
+  height: 100%;
+  z-index: 0; /* canvas layer behind everything */
   background: transparent;
-  pointer-events: none;
+  pointer-events: none; /* disables clicks blocking UI */
 }
 
 
