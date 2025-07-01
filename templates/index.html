@@ -4,11 +4,52 @@
     <title>Aadhaar OCR Uploader</title>
 </head>
 <body>
+    <div id="particles-js"></div>
+
     <h2>Upload Aadhaar Card (Image or PDF)</h2>
     <form action="/submit" method="post" enctype="multipart/form-data">
         <input type="file" name="file" required>
         <button type="submit">Upload & Extract</button>
     </form>
+    <!-- Particle JS Library -->
+<script src="/static/js/particles.min.js"></script>
+
+<!-- Particle Config -->
+<script>
+particlesJS("particles-js", {
+  "particles": {
+    "number": { "value": 60 },
+    "color": { "value": "#a855f7" },
+    "shape": { "type": "circle" },
+    "opacity": { "value": 0.6 },
+    "size": { "value": 3 },
+    "line_linked": {
+      "enable": true,
+      "distance": 130,
+      "color": "#a855f7",
+      "opacity": 0.4,
+      "width": 1
+    },
+    "move": {
+      "enable": true,
+      "speed": 2
+    }
+  },
+  "interactivity": {
+    "detect_on": "canvas",
+    "events": {
+      "onhover": { "enable": true, "mode": "repulse" },
+      "onclick": { "enable": true, "mode": "push" }
+    },
+    "modes": {
+      "repulse": { "distance": 100 },
+      "push": { "particles_nb": 4 }
+    }
+  },
+  "retina_detect": true
+});
+</script>
+
 </body>
 </html>
 
