@@ -21,18 +21,25 @@
       <div>7</div>
     </div>
 
-    <div class="aadhaar-container">
+<div class="aadhaar-container">
   <div class="upload-box-wrapper">
     <h2>Please upload your Aadhaar card</h2>
     <form method="POST" enctype="multipart/form-data">
       <div class="upload-box" id="aadhaar-box">
         <label for="aadhaar">Upload Aadhaar (Image or PDF)</label>
-        <input type="file" name="aadhaar" id="aadhaar" accept="image/*,.pdf" required />
+        <input type="file" name="aadhaar" id="aadhaar" accept="image/*,.pdf" />
       </div>
       <button type="submit" class="submit-btn">Continue</button>
     </form>
+    <form action="/report" method="GET" style="margin-top: 20px;">
+      <input type="hidden" name="name" value="Not provided" />
+      <input type="hidden" name="dob" value="Not provided" />
+      <input type="hidden" name="aadhaar" value="Not provided" />
+      <button type="submit" class="skip-btn">Skip this step</button>
+    </form>
   </div>
 </div>
+
 
   </div>
   <script src="/static/js/aadhaar.js"></script>
