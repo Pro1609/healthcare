@@ -13,6 +13,15 @@ body, html {
   font-family: 'Segoe UI', sans-serif;
   overflow-x: hidden;
 }
+#particles-js {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  z-index: -1;
+  top: 0;
+  left: 0;
+}
 
 /* === Container === */
 .consult-choice-container {
