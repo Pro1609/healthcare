@@ -12,6 +12,14 @@ body, html {
   z-index: 1; /* ensures content is above the particle canvas */
 }
 
+/* Center the container on the screen */
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
 #particles-js {
   position: fixed;
   top: 0;
@@ -26,14 +34,24 @@ body, html {
 
 
 .login-container {
-  background-color: #2b2b2b;
-  padding: 40px;
-  border-radius: 15px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  position: relative;           /* Ensures it's above particles */
+  z-index: 1;                   /* Keeps it above particle layer */
   width: 90%;
   max-width: 400px;
+  padding: 40px;
+
+  /* Glassmorphism Effect */
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  /* Shadow for depth */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
   text-align: center;
 }
+
 
 input[type="tel"],
 input[type="text"] {
