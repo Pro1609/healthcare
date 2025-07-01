@@ -70,12 +70,9 @@
 
   <script src="/static/js/symptoms.js"></script>
 
-<!-- Particle JS -->
 <script src="/static/js/particles.min.js"></script>
-
-<!-- Particle Config -->
 <script>
-window.onload = () => {
+window.onload = function () {
   particlesJS("particles-js", {
     "particles": {
       "number": { "value": 360, "density": { "enable": true, "value_area": 800 } },
@@ -109,7 +106,7 @@ window.onload = () => {
     "interactivity": {
       "detect_on": "canvas",
       "events": {
-        "onhover": { "enable": true, "mode": "repulse" },  // FULL REPULSE MODE ✅
+        "onhover": { "enable": true, "mode": "repulse" },
         "onclick": { "enable": true, "mode": "push" }
       },
       "modes": {
@@ -119,12 +116,8 @@ window.onload = () => {
     },
     "retina_detect": true
   });
-});
+};
 </script>
-
-
-
-
 
 </body>
 </html>
