@@ -20,14 +20,14 @@ body, html {
 /* Particle Canvas Layer */
 #particles-js {
   position: fixed;
-  top: 0;
-  left: 0;
   width: 100%;
   height: 100%;
-  background: transparent;
-  z-index: -1; /* BACKGROUND ✅ */
-  pointer-events: none;  /* Allows interactivity in canvas only, not blocking UI ✅ */
+  top: 0;
+  left: 0;
+  z-index: 0; /* ✅ Background layer */
+  pointer-events: auto; /* ✅ Enables interactivity like repulse */
 }
+
 
 
 .container {
@@ -39,6 +39,8 @@ body, html {
   min-height: 100vh;
   max-width: 100vw;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1; /* ✅ Ensures it's above particles */
 }
 
 /* Stepbar */
