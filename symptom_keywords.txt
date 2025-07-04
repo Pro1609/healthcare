@@ -18,3 +18,92 @@ itching
 rash
 infection
 swelling
+abdominal pain
+back pain
+chest pain
+joint pain
+leg pain
+arm pain
+neck pain
+groin pain
+muscle pain
+shoulder pain
+wrist pain
+knee pain
+elbow pain
+hip pain
+ear pain
+earache
+eye pain
+red eyes
+eye discharge
+blurred vision
+dry eyes
+watery eyes
+runny nose
+blocked nose
+nasal congestion
+loss of smell
+loss of taste
+shortness of breath
+difficulty breathing
+rapid heartbeat
+palpitations
+low blood pressure
+high blood pressure
+drowsiness
+tremors
+seizure
+fainting
+confusion
+memory loss
+hallucinations
+numbness
+tingling
+burning sensation
+cold hands
+cold feet
+sweating
+night sweats
+chills
+dehydration
+anxiety
+depression
+insomnia
+irritability
+loss of appetite
+weight loss
+weight gain
+bloating
+gas
+constipation
+blood in stool
+dark urine
+frequent urination
+painful urination
+blood in urine
+incontinence
+skin dryness
+scaly skin
+peeling skin
+acne
+bruising
+blisters
+lumps
+ulcers
+yellowing of skin
+yellow eyes
+temperature
+vomit
+flu
+cold sores
+sore throat
+menstrual cramps
+missed period
+breast pain
+bacterial infection
+viral infection
+tumor
+fracture
+sprain
+strain
