@@ -459,6 +459,7 @@ Make the response realistic, useful, and grounded only in the data provided abov
         name=name,
         dob=dob,
         aadhaar=aadhaar,
+        severity=severity,
         soap=soap_note
     )
 
