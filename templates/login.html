@@ -10,18 +10,28 @@
   <div id="particles-js"></div>
 
   <div class="login-container">
-    <h2>Welcome to CareConnect</h2>
-    <p>Login with mobile or continue as guest</p>
+  <h2>Welcome to CareConnect</h2>
+  <p>Login with mobile or continue as guest</p>
 
-    <input type="tel" id="phone" placeholder="+91xxxxxxxxxx" required>
-    <button onclick="sendOTP()">Send OTP</button>
+  <!-- Disabled OTP Section -->
+  <div style="opacity: 0.5; pointer-events: none;">
+    <input type="tel" id="phone" placeholder="+91xxxxxxxxxx" disabled>
+    <button onclick="sendOTP()" disabled>Send OTP</button>
 
-    <input type="text" id="otp" placeholder="Enter OTP">
-    <button onclick="verifyOTP()">Verify OTP</button>
-
-    <div class="separator">OR</div>
-    <button class="guest-btn" onclick="continueAsGuest()">Continue as Guest</button>
+    <input type="text" id="otp" placeholder="Enter OTP" disabled>
+    <button onclick="verifyOTP()" disabled>Verify OTP</button>
   </div>
+
+  <p style="font-size: 0.85em; color: #ccc; margin-top: 5px;">
+    🔒 OTP Login is disabled in this demo version
+  </p>
+
+  <div class="separator">OR</div>
+
+  <!-- Guest login remains enabled -->
+  <button class="guest-btn" onclick="continueAsGuest()">Continue as Guest</button>
+</div>
+
 
   <script src="/static/js/login.js"></script>
 <!-- Particle JS Library -->
