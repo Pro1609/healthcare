@@ -23,6 +23,8 @@
    <h1>🧾 SOAP Report for {{ name if name and name != 'Cannot be extracted' else 'Not provided' }}</h1>
 <p><strong>Date of Birth:</strong> {{ dob if dob and dob != 'Cannot be extracted' else 'Not provided' }}</p>
 <p><strong>Aadhaar Number:</strong> {{ aadhaar if aadhaar and aadhaar != 'Cannot be extracted' else 'Not provided' }}</p>
+<p><strong>Reported Severity Level:</strong> {{ severity }}</p>
+
 
 <div class="soap-box fade-in">
   <div class="soap-header">Subjective <span class="divider"></span></div>
