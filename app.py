@@ -322,6 +322,7 @@ def aadhaar():
     print("✅ Aadhaar:", aadhaar_number)
 
     symptoms = session.get("symptoms", "").strip()
+    severity = session.get("severity", "Not provided")
     if not symptoms:
         print("⚠️ No symptoms found in session. Redirecting back to /symptoms.")
         return redirect("/symptoms")
@@ -330,6 +331,7 @@ def aadhaar():
         name=name,
         dob=dob,
         aadhaar=aadhaar_number,
+        severity = severity,
         symptoms=symptoms
 ))
 
@@ -369,9 +371,12 @@ def report():
     dob = request.args.get("dob") or "Not provided"
     aadhaar = request.args.get("aadhaar") or "Not provided"
 
-    # ✅ Pull symptoms (GET > session)
+    # ✅ Pull symptoms and severity from GET or session
     symptoms = request.args.get("symptoms") or session.get("symptoms", "")
+    severity = session.get("severity", "Not provided")
+
     print("🩺 Received Symptoms (raw):", symptoms)
+    print("📊 Reported Severity:", severity)
 
     # 🔍 Basic symptom input check
     if not symptoms or not symptoms.strip():
@@ -406,7 +411,7 @@ def report():
         <a href='/symptoms'>🡸 Back to Start</a>
         """
 
-    # ✍️ Final AI prompt
+    # ✍️ Final AI prompt (including severity)
     prompt = f"""
 You are a medical assistant generating a SOAP (Subjective, Objective, Assessment, Plan) note.
 
@@ -415,6 +420,7 @@ Please use only the following verified patient details and the symptom descripti
 Patient Name: {name}
 Date of Birth: {dob}
 Aadhaar: {aadhaar}
+Severity (as rated by patient): {severity}/10
 
 Symptoms Reported by Patient:
 "{symptoms}"
@@ -455,7 +461,6 @@ Make the response realistic, useful, and grounded only in the data provided abov
         aadhaar=aadhaar,
         soap=soap_note
     )
-
 
 @app.route('/consultchoice', methods=['GET', 'POST'])
 def consult_choice():
