@@ -50,51 +50,61 @@ let audioChunks = [];
 const recordBtn = document.getElementById('recordBtn');
 const recordStatus = document.getElementById('recordStatus');
 const symptomsInput = document.getElementById('symptoms');
-const languageSelect = document.getElementById('languageSelect'); // ✅ Added line
+const languageSelect = document.getElementById('languageSelect');
 
 recordBtn.addEventListener('click', async () => {
-  if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
+  try {
+    if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
 
-    audioChunks = [];
-    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+      audioChunks = [];
+      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
 
-    mediaRecorder.onstop = async () => {
-      const blob = new Blob(audioChunks, { type: 'audio/wav' });
-      const base64 = await blobToBase64(blob);
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(audioChunks, { type: 'audio/wav' });
+        const base64 = await blobToBase64(blob);
 
-      recordStatus.textContent = "Transcribing & Translating...";
+        recordStatus.textContent = "Transcribing & Translating...";
 
-      const response = await fetch('/transcribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          audio: base64,
-          language: languageSelect.value  // ✅ Send selected language
-        })
-      });
+        try {
+          const response = await fetch('/transcribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              audio: base64,
+              language: languageSelect.value
+            })
+          });
 
-      const data = await response.json();
-      if (data.translated_text) {
-        symptomsInput.value = data.translated_text;
-        recordStatus.textContent = "✔️ Transcribed & Translated!";
-      } else if (data.original_text) {
-        symptomsInput.value = data.original_text;
-        recordStatus.textContent = "⚠️ Translation failed. Showing raw transcription.";
-      } else {
-        recordStatus.textContent = "❌ Transcription failed";
-      }
-    };
+          const data = await response.json();
+          if (data.translated_text) {
+            symptomsInput.value = data.translated_text;
+            recordStatus.textContent = "✔️ Transcribed & Translated!";
+          } else if (data.original_text) {
+            symptomsInput.value = data.original_text;
+            recordStatus.textContent = "⚠️ Translation failed. Showing raw transcription.";
+          } else {
+            recordStatus.textContent = "❌ Transcription failed";
+          }
+        } catch (apiError) {
+          console.error("API error:", apiError);
+          recordStatus.textContent = "❌ API Error. Please try again.";
+        }
+      };
 
-    mediaRecorder.start();
-    recordStatus.textContent = "🎙️ Recording...";
-    recordBtn.textContent = "⏹️";
+      mediaRecorder.start();
+      recordStatus.textContent = "🎙️ Recording...";
+      recordBtn.textContent = "⏹️";
 
-    setTimeout(() => {
-      mediaRecorder.stop();
-      recordBtn.textContent = "🎙️";
-    }, 7000);
+      setTimeout(() => {
+        mediaRecorder.stop();
+        recordBtn.textContent = "🎙️";
+      }, 7000);
+    }
+  } catch (err) {
+    console.error("Microphone access denied:", err);
+    recordStatus.textContent = "🚫 Microphone access denied. Please enable permissions in browser settings.";
   }
 });
 
