@@ -32,12 +32,15 @@ body, html {
 .image-upload-container {
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 40px;
+  align-items: flex-start;
+  padding: 60px 20px;
   min-height: 100vh;
   position: relative;
   z-index: 1;
+  flex-direction: column;
+  gap: 30px;
 }
+
 
 /* ===== Upload Area - Glassmorphic Box ===== */
 .upload-area {
@@ -210,4 +213,14 @@ button:hover {
   color: #aaa;
   font-style: italic;
 }
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+footer {
+  margin-top: auto;
+}
+
 
