@@ -23,29 +23,27 @@
 <div class="upload-area">
   <h2>If you have any images or videos, please upload or skip</h2>
   <form method="POST" enctype="multipart/form-data">
-    
-    <!-- 🔒 Image Upload Disabled -->
-    <div class="upload-box" style="opacity: 0.5; pointer-events: none;">
-      <label>Upload Image (currently disabled)</label>
-      <input type="file" name="image" accept="image/*" disabled>
-    </div>
 
-    <!-- 🔒 Video Upload Disabled -->
-    <div class="upload-box" style="opacity: 0.5; pointer-events: none;">
-      <label>Upload Video (not supported currently)</label>
-      <input type="file" name="video" accept="video/*" disabled>
-    </div>
+  <!-- 🔒 Image Upload Disabled -->
+  <div class="upload-box disabled">
+    <label>Upload Image (currently disabled)</label>
+    <input type="file" name="image" accept="image/*" disabled>
+  </div>
 
-    <p style="font-size: 0.85em; color: #ccc;">📷 Media upload is disabled in this demo</p>
+  <!-- 🔒 Video Upload Disabled -->
+  <div class="upload-box disabled">
+    <label>Upload Video (not supported currently)</label>
+    <input type="file" name="video" accept="video/*" disabled>
+  </div>
 
-    <button type="submit" name="skip">Skip</button>
-  </form>
-</div>
+  <p style="font-size: 0.85em; color: #ccc;">📷 Media upload is disabled in this demo</p>
 
-
+  <div style="display: flex; justify-content: center; gap: 20px; margin-top: 20px;">
     <button type="submit">Continue</button>
     <button type="submit" name="skip">Skip</button>
-  </form>
+  </div>
+</form>
+
 </div>
 
   </div>
