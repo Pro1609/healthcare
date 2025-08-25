@@ -12,6 +12,8 @@ import subprocess
 import uuid
 import time
 import math
+from pdf2image import convert_from_bytes
+from PIL import Image
 # Load environment variables
 load_dotenv()
 
@@ -78,6 +80,78 @@ def haversine(lat1, lon1, lat2, lon2):
 
     a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
     return round(R * (2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))), 2)
+
+
+# Add this helper function
+def get_translation_code(form_language_code):
+    """Convert form language code to Azure Translator language code"""
+    language_mapping = {
+        'en-IN': 'en',      # English -> English (no translation)
+        'hi-IN': 'hi',      # Hindi -> Hindi
+        'or-IN': 'or'       # Odia -> Odia
+    }
+    return language_mapping.get(form_language_code, 'en')
+
+SUPPORTED_LANGUAGES = {
+    'en-IN': 'English',
+    'hi-IN': 'Hindi', 
+    'or-IN': 'Odia'
+}
+# Add the translation function
+def translate_soap_report(soap_text, target_language_code):
+    """
+    Translate SOAP report to target language using Azure Translator
+    """
+    # Convert form language code to translation code
+    target_language = get_translation_code(target_language_code)
+    
+    if not soap_text or target_language == 'en':
+        return soap_text  # No translation needed for English
+    
+    try:
+        # Azure Translator API
+        trans_url = f"{AZURE_TRANSLATOR_ENDPOINT}/translate?api-version=3.0&to={target_language}"
+        trans_headers = {
+            "Ocp-Apim-Subscription-Key": AZURE_TRANSLATOR_KEY,
+            "Ocp-Apim-Subscription-Region": AZURE_TRANSLATOR_REGION,
+            "Content-Type": "application/json"
+        }
+        
+        # Split SOAP into chunks if too long (Azure has character limits)
+        max_chunk_size = 5000
+        if len(soap_text) <= max_chunk_size:
+            # Single translation
+            trans_body = [{"Text": soap_text}]
+            trans_response = requests.post(trans_url, headers=trans_headers, json=trans_body)
+            
+            if trans_response.status_code == 200:
+                trans_data = trans_response.json()
+                translated_text = trans_data[0]["translations"][0]["text"]
+                print("✅ SOAP translated successfully")
+                return translated_text
+            else:
+                print(f"❌ Translation failed: {trans_response.text}")
+                return soap_text
+        else:
+            # Split into chunks for long text
+            chunks = [soap_text[i:i+max_chunk_size] for i in range(0, len(soap_text), max_chunk_size)]
+            translated_chunks = []
+            
+            for chunk in chunks:
+                trans_body = [{"Text": chunk}]
+                trans_response = requests.post(trans_url, headers=trans_headers, json=trans_body)
+                
+                if trans_response.status_code == 200:
+                    trans_data = trans_response.json()
+                    translated_chunks.append(trans_data[0]["translations"][0]["text"])
+                else:
+                    translated_chunks.append(chunk)  # Keep original if translation fails
+            
+            return "".join(translated_chunks)
+            
+    except Exception as e:
+        print(f"❌ Translation error: {str(e)}")
+        return soap_text  # Return original text if translation fails
 
 
 
@@ -182,13 +256,15 @@ def symptoms():
     if request.method == 'POST':
         symptoms_text = request.form.get("symptoms")
         severity = request.form.get("severity")
+        selected_language = request.form.get("language", "en-IN")  # NEW LINE
 
         if not symptoms_text:
-            return "<h2>Please enter your symptoms.</h2><a href='/symptoms'>🡸 Try Again</a>"
+            return "<h2>Please enter your symptoms.</h2><a href='/symptoms'>🔸 Try Again</a>"
 
         session['symptoms'] = symptoms_text
         session['severity'] = severity
-
+        session['selected_language'] = selected_language  # NEW LINE
+        
         return redirect(url_for('image_upload'))
 
     return render_template("symptoms.html")
@@ -366,17 +442,19 @@ One-line health advice: Please consult a doctor for further evaluation of your s
 
 @app.route('/report')
 def report():
-    # ⛑ Get user info or fallback
+    # ⛳ Get user info or fallback
     name = request.args.get("name") or "Not provided"
     dob = request.args.get("dob") or "Not provided"
     aadhaar = request.args.get("aadhaar") or "Not provided"
 
-    # ✅ Pull symptoms and severity from GET or session
+    # ✅ Pull symptoms, severity, and language from GET or session
     symptoms = request.args.get("symptoms") or session.get("symptoms", "")
     severity = session.get("severity", "Not provided")
+    selected_language = session.get("selected_language", "en-IN")  # NEW: Get stored language
 
     print("🩺 Received Symptoms (raw):", symptoms)
     print("📊 Reported Severity:", severity)
+    print("🌐 Selected Language:", selected_language)  # NEW: Debug log
 
     # 🔍 Basic symptom input check
     if not symptoms or not symptoms.strip():
@@ -384,7 +462,7 @@ def report():
         return """
         <h2>Symptoms missing or invalid.</h2>
         <p>Please go back and describe your symptoms to continue.</p>
-        <a href='/symptoms'>🡸 Back to Symptom Input</a>
+        <a href='/symptoms'>🔸 Back to Symptom Input</a>
         """
 
     # 📂 Load keyword file
@@ -408,10 +486,10 @@ def report():
         <p>Your input doesn't seem to describe enough medical symptoms.</p>
         <p>Please try again with more specific symptoms (e.g., 'fever and headache after eating').</p>
         <br><br>
-        <a href='/symptoms'>🡸 Back to Start</a>
+        <a href='/symptoms'>🔸 Back to Start</a>
         """
 
-    # ✍️ Final AI prompt (including severity)
+    # ✏️ Final AI prompt (including severity)
     prompt = f"""
 You are a medical assistant generating a SOAP (Subjective, Objective, Assessment, Plan) note.
 
@@ -426,7 +504,7 @@ Symptoms Reported by Patient:
 "{symptoms}"
 
 Instructions:
-- Use only the symptoms provided — do not fabricate or modify them.
+- Use only the symptoms provided – do not fabricate or modify them.
 - The note should follow the SOAP format:
   - Subjective: Summarize what the patient described in simple clinical language.
   - Objective: Leave this section blank unless examination data is provided.
@@ -446,22 +524,35 @@ Make the response realistic, useful, and grounded only in the data provided abov
             messages=[{"role": "user", "content": prompt}]
         )
         soap_note = response.choices[0].message.content.strip()
-        print("✅ AI SOAP Response:\n", soap_note)
+        print("✅ AI SOAP Response (English):\n", soap_note)
 
     except Exception as e:
         print("⚠️ AI fallback triggered due to:", str(e))
         soap_note = generate_soap_strict(symptoms, name, dob, aadhaar)
-        print("🪄 Fallback SOAP Note:\n", soap_note)
+        print("🪄 Fallback SOAP Note (English):\n", soap_note)
 
-    # ✅ Send to report
+    # 🌐 NEW: TRANSLATE SOAP IF NEEDED
+    if selected_language and selected_language not in ['en-IN', 'en']:
+        translation_code = get_translation_code(selected_language)
+        print(f"🌍 Translating SOAP to: {selected_language} ({translation_code})")
+        translated_soap = translate_soap_report(soap_note, selected_language)
+        final_soap = translated_soap
+        print("✅ Translated SOAP:\n", translated_soap)
+    else:
+        print("🇺🇸 Keeping SOAP in English")
+        final_soap = soap_note
+
+    # ✅ Send to report template
     return render_template(
         "report.html",
         name=name,
         dob=dob,
         aadhaar=aadhaar,
         severity=severity,
-        soap=soap_note
+        soap=final_soap,  # Use translated or original SOAP
+        selected_language=selected_language  # Pass language to template if needed
     )
+
 
 @app.route('/consultchoice', methods=['GET', 'POST'])
 def consult_choice():
@@ -539,4 +630,5 @@ def empty_particles():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
+
 
