@@ -238,7 +238,8 @@ def transcribe_audio_base64():
 
         return jsonify({
             "original_text": original_text,
-            "translated_text": translated_text
+            "translated_text": translated_text,
+            "language_code": language_code
         })
 
     except subprocess.CalledProcessError as e:
@@ -622,6 +623,7 @@ def empty_particles():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
+
 
 
 
