@@ -115,3 +115,32 @@ function blobToBase64(blob) {
     reader.readAsDataURL(blob);
   });
 }
+
+// In your symptoms.js file, update the transcription success handler:
+fetch('/transcribe', {
+    method: 'POST',
+    body: JSON.stringify({
+        audio: audioBase64,
+        language: selectedLanguage
+    })
+})
+.then(response => response.json())
+.then(data => {
+    // Create a dual-column display
+    const originalCol = document.createElement('div');
+    originalCol.className = 'transcription-original';
+    originalCol.innerHTML = `<strong>Original (${data.language_code}):</strong><br>${data.original_text}`;
+    
+    const translatedCol = document.createElement('div');
+    translatedCol.className = 'transcription-translated';
+    translatedCol.innerHTML = `<strong>English Translation:</strong><br>${data.translated_text}`;
+    
+    // Update your textarea with English (for processing)
+    document.querySelector('textarea[name="symptoms"]').value = data.translated_text;
+    
+    // Display both versions in a container
+    const displayContainer = document.getElementById('transcription-display');
+    displayContainer.innerHTML = '';
+    displayContainer.appendChild(originalCol);
+    displayContainer.appendChild(translatedCol);
+});
