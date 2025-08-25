@@ -415,48 +415,50 @@ def aadhaar():
 
 def generate_soap_strict(symptoms, name, dob, aadhaar):
     return f"""
-SOAP Report for {name}
+SOAP MEDICAL ASSESSMENT
+
+PATIENT INFORMATION:
+Name: {name}
 Date of Birth: {dob}
 Aadhaar Number: {aadhaar}
 
-SOAP Note:
-
-Subjective:
+SUBJECTIVE:
 The patient, {name}, reports the following symptoms: {symptoms}
 
-Objective:
-No vital signs or physical examination data provided.
+OBJECTIVE:
+No vital signs or physical examination data provided at this time.
 
-Assessment:
-The described symptoms may be associated with common conditions. Further diagnostic evaluation is recommended for a more accurate assessment.
+ASSESSMENT:
+Based on the reported symptoms, further diagnostic evaluation is recommended for accurate assessment. The described symptoms may be associated with common medical conditions requiring professional evaluation.
 
-Plan:
-1. Visit a local health center or hospital for examination.
-2. Basic diagnostic tests (e.g., CBC, imaging) may be required based on symptoms.
-3. Follow general advice on hydration, rest, and symptom tracking.
+PLAN:
+1. Recommend visiting a local health center or hospital for proper examination
+2. Basic diagnostic tests may be required based on presenting symptoms
+3. Maintain adequate hydration and rest
+4. Monitor symptoms and seek immediate care if condition worsens
 
-Triage Severity Score: 5/10
+TRIAGE SEVERITY SCORE: 5/10
 
-One-line health advice: Please consult a doctor for further evaluation of your symptoms.
+HEALTH ADVICE: Please consult a qualified healthcare provider for proper evaluation and treatment of your symptoms.
 """
 
 @app.route('/report')
 def report():
-    # ⛳ Get user info or fallback
+    # Get user info or fallback
     name = request.args.get("name") or "Not provided"
     dob = request.args.get("dob") or "Not provided"
     aadhaar = request.args.get("aadhaar") or "Not provided"
 
-    # ✅ Pull symptoms, severity, and language from GET or session
+    # Pull symptoms, severity, and language from GET or session
     symptoms = request.args.get("symptoms") or session.get("symptoms", "")
     severity = session.get("severity", "Not provided")
-    selected_language = session.get("selected_language", "en-IN")  # NEW: Get stored language
+    selected_language = session.get("selected_language", "en-IN")
 
     print("🩺 Received Symptoms (raw):", symptoms)
     print("📊 Reported Severity:", severity)
-    print("🌐 Selected Language:", selected_language)  # NEW: Debug log
+    print("🌐 Selected Language:", selected_language)
 
-    # 🔍 Basic symptom input check
+    # Basic symptom input check
     if not symptoms or not symptoms.strip():
         print("❌ Symptoms missing or empty.")
         return """
@@ -465,7 +467,7 @@ def report():
         <a href='/symptoms'>🔸 Back to Symptom Input</a>
         """
 
-    # 📂 Load keyword file
+    # Load keyword file
     try:
         with open("symptom_keywords.txt", "r") as file:
             keywords = [line.strip().lower() for line in file if line.strip()]
@@ -475,7 +477,7 @@ def report():
 
     print("📄 Loaded keywords:", keywords[:10], "...")
 
-    # 🧠 Check matches
+    # Check matches
     matches = sum(1 for word in keywords if word in symptoms.lower())
     print(f"🔍 Match count: {matches}")
 
@@ -489,35 +491,32 @@ def report():
         <a href='/symptoms'>🔸 Back to Start</a>
         """
 
-    # ✏️ Final AI prompt (including severity)
+    # Updated AI prompt - more flexible formatting
     prompt = f"""
-You are a medical assistant generating a SOAP (Subjective, Objective, Assessment, Plan) note.
+Generate a comprehensive SOAP medical assessment for this patient. Use clear formatting and structure it professionally for easy reading.
 
-Please use only the following verified patient details and the symptom description. Do not add or assume any extra symptoms or diagnoses.
-
-Patient Name: {name}
+PATIENT INFORMATION:
+Name: {name}
 Date of Birth: {dob}
-Aadhaar: {aadhaar}
-Severity (as rated by patient): {severity}/10
+Aadhaar Number: {aadhaar}
+Patient-Rated Severity: {severity}/10
 
-Symptoms Reported by Patient:
+REPORTED SYMPTOMS:
 "{symptoms}"
 
-Instructions:
-- Use only the symptoms provided – do not fabricate or modify them.
-- The note should follow the SOAP format:
-  - Subjective: Summarize what the patient described in simple clinical language.
-  - Objective: Leave this section blank unless examination data is provided.
-  - Assessment: Explain what could be the likely causes based only on the given symptoms.
-  - Plan: Recommend reasonable next steps (e.g., rest, hydration, tests, common meds, or doctor visit).
-- Add a triage severity score out of 10 based on urgency.
-- Conclude with a one-line health advice based on the same symptoms.
+INSTRUCTIONS:
+- Create a complete SOAP note (Subjective, Objective, Assessment, Plan)
+- Use only the symptoms provided - do not add or assume additional symptoms
+- Use clear headings and professional medical language
+- Include a triage severity score (1-10) based on urgency
+- End with practical health advice
+- Format for readability with proper spacing and structure
 
-Make the response realistic, useful, and grounded only in the data provided above.
+Make this a thorough, professional medical assessment based solely on the provided information.
 """
     print("🧠 Final Prompt to AI:\n", prompt)
 
-    # 🧠 Query LLM or fallback
+    # Query LLM or fallback
     try:
         response = client.chat.completions.create(
             model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
@@ -531,7 +530,7 @@ Make the response realistic, useful, and grounded only in the data provided abov
         soap_note = generate_soap_strict(symptoms, name, dob, aadhaar)
         print("🪄 Fallback SOAP Note (English):\n", soap_note)
 
-    # 🌐 NEW: TRANSLATE SOAP IF NEEDED
+    # Translate SOAP if needed
     if selected_language and selected_language not in ['en-IN', 'en']:
         translation_code = get_translation_code(selected_language)
         print(f"🌍 Translating SOAP to: {selected_language} ({translation_code})")
@@ -542,17 +541,16 @@ Make the response realistic, useful, and grounded only in the data provided abov
         print("🇺🇸 Keeping SOAP in English")
         final_soap = soap_note
 
-    # ✅ Send to report template
+    # Send to report template
     return render_template(
         "report.html",
         name=name,
         dob=dob,
         aadhaar=aadhaar,
         severity=severity,
-        soap=final_soap,  # Use translated or original SOAP
-        selected_language=selected_language  # Pass language to template if needed
+        soap=final_soap,
+        selected_language=selected_language
     )
-
 
 @app.route('/consultchoice', methods=['GET', 'POST'])
 def consult_choice():
@@ -630,5 +628,6 @@ def empty_particles():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
+
 
 
