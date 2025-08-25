@@ -442,7 +442,7 @@ Make the response realistic, useful, and grounded only in the data provided abov
     # 🧠 Query LLM or fallback
     try:
         response = client.chat.completions.create(
-            model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
+            model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
             messages=[{"role": "user", "content": prompt}]
         )
         soap_note = response.choices[0].message.content.strip()
@@ -539,3 +539,4 @@ def empty_particles():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
+
