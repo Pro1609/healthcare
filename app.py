@@ -491,28 +491,22 @@ def report():
         <a href='/symptoms'>🔸 Back to Start</a>
         """
 
-    # Updated AI prompt - more flexible formatting
+    # Optimized AI prompt - concise and professional
     prompt = f"""
-Generate a comprehensive SOAP medical assessment for this patient. Use clear formatting and structure it professionally for easy reading.
+Create a concise SOAP medical note for this patient:
 
-PATIENT INFORMATION:
-Name: {name}
-Date of Birth: {dob}
-Aadhaar Number: {aadhaar}
-Patient-Rated Severity: {severity}/10
+PATIENT: {name} | DOB: {dob} | Aadhaar: {aadhaar} | Severity: {severity}/10
+SYMPTOMS: "{symptoms}"
 
-REPORTED SYMPTOMS:
-"{symptoms}"
+Format as a professional medical report with these sections:
+- SUBJECTIVE: Patient's reported symptoms (brief summary)
+- OBJECTIVE: Physical findings (state "Remote assessment - no physical exam performed")
+- ASSESSMENT: Likely differential diagnoses based on symptoms only
+- PLAN: Specific recommendations (medications, tests, follow-up)
+- TRIAGE SCORE: X/10 (urgency level)
+- ADVICE: One clear recommendation
 
-INSTRUCTIONS:
-- Create a complete SOAP note (Subjective, Objective, Assessment, Plan)
-- Use only the symptoms provided - do not add or assume additional symptoms
-- Use clear headings and professional medical language
-- Include a triage severity score (1-10) based on urgency
-- End with practical health advice
-- Format for readability with proper spacing and structure
-
-Make this a thorough, professional medical assessment based solely on the provided information.
+Keep each section concise. Use direct medical language without explanatory phrases. Base everything only on the provided symptoms.
 """
     print("🧠 Final Prompt to AI:\n", prompt)
 
@@ -628,6 +622,7 @@ def empty_particles():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
+
 
 
 
