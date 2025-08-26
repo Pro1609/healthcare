@@ -14,6 +14,8 @@ body, html {
   overflow-x: hidden;
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ===== Particle Canvas Layer ===== */
@@ -32,15 +34,15 @@ body, html {
 .image-upload-container {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center; /* Changed from flex-start to center */
   padding: 60px 20px;
   min-height: 100vh;
   position: relative;
   z-index: 1;
   flex-direction: column;
   gap: 30px;
+  flex: 1; /* Added to take remaining space */
 }
-
 
 /* ===== Upload Area - Glassmorphic Box ===== */
 .upload-area {
@@ -178,6 +180,11 @@ button:hover {
   box-shadow: 0 0 10px #5f27cd;
 }
 
+/* ===== Footer ===== */
+footer {
+  margin-top: auto;
+}
+
 /* ===== Mobile Styles ===== */
 @media screen and (max-width: 600px) {
   .image-upload-container {
@@ -213,14 +220,3 @@ button:hover {
   color: #aaa;
   font-style: italic;
 }
-
-body {
-  display: flex;
-  flex-direction: column;
-}
-
-footer {
-  margin-top: auto;
-}
-
-
