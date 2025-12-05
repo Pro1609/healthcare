@@ -1,5 +1,5 @@
-// symptoms.js — full behavior for bilingual symptoms input + voice + translate + submit-mode
-// Drop this file into /static/js/symptoms.js and include it near the end of your HTML (before </body>).
+// symptoms.js — bilingual symptoms input + voice + translate
+// Drop this file into /static/js/symptoms.js and include it near the end of your HTML.
 
 document.addEventListener('DOMContentLoaded', () => {
   /* -------------------------
@@ -20,9 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const recordBtn = document.getElementById('recordBtn');
   const recordStatus = document.getElementById('recordStatus');
 
-  const chooseEnglish = document.getElementById('chooseEnglish');
-  const chooseLocal = document.getElementById('chooseLocal');
-  const chooseBoth = document.getElementById('chooseBoth');
   const symptomsForm = document.getElementById('symptoms-form');
 
   const severitySlider = document.getElementById('severity');
@@ -48,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Helper: show/hide local wrapper depending on language
   function updateLocalWrapperVisibility() {
-    const lang = languageSelect.value || 'en-IN';
+    const lang = languageSelect ? languageSelect.value : 'en-IN';
     if (lang.startsWith('en')) {
       // hide local input — preserve existing content
       if (localWrapper) {
@@ -71,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Helper: update transcription display visibility & texts
-  function showTranscription(originalText, translatedText, langCode=null) {
+  function showTranscription(originalText, translatedText, langCode = null) {
     if (transcriptionOriginal) transcriptionOriginal.innerText = originalText || '';
     if (transcriptionTranslated) transcriptionTranslated.innerText = translatedText || '';
     if (transcriptionDisplay) transcriptionDisplay.style.display = 'block';
@@ -81,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // enable translate button if local textarea present
     updateTranslateButtonState();
     // set textareas based on current language selection
-    if (languageSelect.value && !languageSelect.value.startsWith('en')) {
+    if (languageSelect && languageSelect.value && !languageSelect.value.startsWith('en')) {
       // when non-English selected, fill the local textarea with original
       if (symptomsLocalTextarea) symptomsLocalTextarea.value = originalText || '';
     }
@@ -139,18 +136,18 @@ document.addEventListener('DOMContentLoaded', () => {
     translateBtn.addEventListener('click', async () => {
       const localText = symptomsLocalTextarea ? symptomsLocalTextarea.value.trim() : '';
       if (!localText) return;
-      translateStatus.textContent = 'Translating...';
+      if (translateStatus) translateStatus.textContent = 'Translating...';
       translateBtn.disabled = true;
 
       // Prepare payload (from is the selected language, to is 'en')
       const payload = {
         text: localText,
-        from: languageSelect ? languageSelect.value : 'or-IN',
+        from: languageSelect ? languageSelect.value : null,
         to: 'en'
       };
 
       try {
-        // Call the recommended server-side translate endpoint
+        // Call the server-side translate endpoint
         const resp = await fetch('/translate_text', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -158,9 +155,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (!resp.ok) {
-          // graceful fallback message
           const txt = await resp.text().catch(() => '');
-          translateStatus.textContent = `Translation failed (${resp.status}).`;
+          if (translateStatus) translateStatus.textContent = `Translation failed (${resp.status}).`;
           console.warn('Translate endpoint returned error:', resp.status, txt);
         } else {
           const data = await resp.json();
@@ -168,13 +164,13 @@ document.addEventListener('DOMContentLoaded', () => {
           // populate canonical english textarea and hidden fields
           if (symptomsTextarea) symptomsTextarea.value = translated;
           if (translatedHidden) translatedHidden.value = translated;
-          translateStatus.textContent = 'Translation complete.';
+          if (translateStatus) translateStatus.textContent = 'Translation complete.';
           // Also show the transcription pair UI for review
           showTranscription(localText, translated, payload.from);
         }
       } catch (err) {
         console.error('Error calling /translate_text:', err);
-        translateStatus.textContent = 'Translation failed (network).';
+        if (translateStatus) translateStatus.textContent = 'Translation failed (network).';
       } finally {
         updateTranslateButtonState();
       }
@@ -202,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (_) {}
 
             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            recordStatus.textContent = 'Processing...';
+            if (recordStatus) recordStatus.textContent = 'Processing...';
 
             try {
               const base64 = await blobToBase64(audioBlob);
@@ -224,10 +220,10 @@ document.addEventListener('DOMContentLoaded', () => {
               const translatedText = data.translated_text || originalText || '';
               // show in transcription UI and populate fields
               showTranscription(originalText, translatedText, data.language_code || body.language);
-              recordStatus.textContent = 'Transcription complete!';
+              if (recordStatus) recordStatus.textContent = 'Transcription complete!';
             } catch (err) {
               console.error('Transcription error:', err);
-              recordStatus.textContent = 'Transcription failed. Try again.';
+              if (recordStatus) recordStatus.textContent = 'Transcription failed. Try again.';
               // don't clear textareas
             }
           };
@@ -235,10 +231,10 @@ document.addEventListener('DOMContentLoaded', () => {
           mediaRecorder.start();
           isRecording = true;
           recordBtn.textContent = '🛑';
-          recordStatus.textContent = 'Recording... Click to stop';
+          if (recordStatus) recordStatus.textContent = 'Recording... Click to stop';
         } catch (err) {
           console.error('Microphone error:', err);
-          recordStatus.textContent = 'Microphone access denied or unavailable';
+          if (recordStatus) recordStatus.textContent = 'Microphone access denied or unavailable';
         }
       } else {
         // stop recording
@@ -255,45 +251,29 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* -------------------------
-     Pre-submit: pick which text to send as canonical `symptoms`
+     Pre-submit: always submit English as canonical `symptoms`
      ------------------------- */
   if (symptomsForm) {
     symptomsForm.addEventListener('submit', (e) => {
-      // validation: ensure canonical field is sufficiently descriptive
-      const chosenMode = document.querySelector('input[name="submit_mode"]:checked')?.value || 'english';
-
-      let effectiveText = '';
+      // Always submit English — pipeline requires English
       const englishText = symptomsTextarea ? symptomsTextarea.value.trim() : '';
       const localText = symptomsLocalTextarea ? symptomsLocalTextarea.value.trim() : '';
 
-      if (chosenMode === 'english') {
-        effectiveText = englishText;
-      } else if (chosenMode === 'local') {
-        effectiveText = localText || englishText; // fallback if local is empty
-      } else if (chosenMode === 'both') {
-        // concatenate local + newline + english, but avoid duplicates
-        if (localText && englishText && localText !== englishText) {
-          effectiveText = `${localText}\n\n${englishText}`;
-        } else {
-          effectiveText = localText || englishText;
-        }
-      }
-
-      // Basic validation rule similar to previous behavior: require some detail
-      if (!effectiveText || effectiveText.length < 10) {
+      // Basic validation: require some detail
+      if (!englishText || englishText.length < 10) {
         e.preventDefault();
         alert('Please describe your symptoms with more detail before continuing.');
         return;
       }
 
-      // Put the effective text into the canonical textarea so server receives the same field
-      if (symptomsTextarea) symptomsTextarea.value = effectiveText;
+      // Ensure canonical textarea holds the English text (this is what your server expects)
+      if (symptomsTextarea) symptomsTextarea.value = englishText;
 
-      // Ensure hidden fields reflect latest values
-      if (originalHidden && symptomsLocalTextarea) originalHidden.value = symptomsLocalTextarea.value.trim();
-      if (translatedHidden && symptomsTextarea) translatedHidden.value = symptomsTextarea.value.trim();
+      // Update hidden fields so original/translated pair are preserved for logging/debugging
+      if (originalHidden && symptomsLocalTextarea) originalHidden.value = localText;
+      if (translatedHidden && symptomsTextarea) translatedHidden.value = englishText;
 
-      // Let the submit proceed normally
+      // allow the form to submit normally
     });
   }
 
