@@ -164,6 +164,57 @@ def home():
 def login():
     return render_template("login.html")
 
+# ---------------------------------------------
+# Translate typed local text → English
+# ---------------------------------------------
+@app.route('/translate_text', methods=['POST'])
+def translate_text():
+    try:
+        data = request.get_json(force=True)
+        text = data.get("text", "")
+        from_lang = data.get("from", None)          # e.g., "or-IN" or "hi-IN"
+        to_lang = data.get("to", "en")             # default English
+
+        if not text:
+            return jsonify({"error": "No text provided"}), 400
+
+        # Azure Translator endpoint (same as /transcribe uses)
+        trans_url = f"{AZURE_TRANSLATOR_ENDPOINT}/translate?api-version=3.0&to={to_lang}"
+
+        # If from_lang is provided, include it — it's optional for Azure
+        if from_lang:
+            trans_url += f"&from={from_lang}"
+
+        trans_headers = {
+            "Ocp-Apim-Subscription-Key": AZURE_TRANSLATOR_KEY,
+            "Ocp-Apim-Subscription-Region": AZURE_TRANSLATOR_REGION,
+            "Content-Type": "application/json"
+        }
+
+        trans_body = [{"Text": text}]
+
+        response = requests.post(trans_url, headers=trans_headers, json=trans_body)
+
+        print("🌐 Typed Translation Status:", response.status_code)
+        print("🌐 Typed Translation Raw:", response.text)
+
+        if response.status_code != 200:
+            return jsonify({
+                "error": "Azure translation failed",
+                "details": response.text
+            }), response.status_code
+
+        response_json = response.json()
+
+        translated_text = response_json[0]["translations"][0]["text"]
+
+        return jsonify({"translated_text": translated_text})
+
+    except Exception as e:
+        print("❌ Error in /translate_text:", str(e))
+        return jsonify({"error": str(e)}), 500
+
+
 # ✅ Transcribe audio from base64 and auto-translate to English
 @app.route('/transcribe', methods=['POST'])
 def transcribe_audio_base64():
@@ -623,6 +674,7 @@ def empty_particles():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
+
 
 
 
