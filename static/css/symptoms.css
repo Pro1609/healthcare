@@ -106,6 +106,83 @@ label {
   font-weight: 500;
 }
 
+/* -------------------------------------------
+   LOCAL LANGUAGE TEXTAREA (MATCH ENGLISH EXACTLY)
+------------------------------------------- */
+#symptoms_local {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-size: 1rem;
+  resize: vertical;
+  transition: 0.25s box-shadow ease;
+  margin-top: 12px;
+  margin-bottom: 14px;
+  outline: none;
+}
+
+/* Focus glow — identical to English textarea */
+#symptoms_local:focus {
+  box-shadow: 0 0 8px rgba(95, 39, 205, 0.8);
+}
+
+
+/* -------------------------------------------
+   TRANSLATE BUTTON (MATCH YOUR UI STYLE)
+------------------------------------------- */
+#translateLocalBtn {
+  margin-top: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: #4b5563;  /* Grey button (same as your theme) */
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease;
+  font-size: 0.9rem;
+}
+
+#translateLocalBtn:hover {
+  background: #6b7280; /* Slight lighter hover */
+}
+
+#translateLocalBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+/* -------------------------------------------
+   TRANSCRIPTION DISPLAY (BILINGUAL BOX)
+------------------------------------------- */
+#transcription-display {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 14px;
+  display: none; /* JS will toggle this */
+}
+
+.transcription-col {
+  margin-bottom: 10px;
+  color: #e5e5e5;
+  font-size: 0.95rem;
+  word-wrap: break-word;
+}
+
+
+/* -------------------------------------------
+   HELPER: HIDE LOCAL WRAPPER WHEN ENGLISH SELECTED
+------------------------------------------- */
+.hidden {
+  display: none !important;
+}
+
+
 #transcription-display {
     display: grid;
     grid-template-columns: 1fr 1fr;
